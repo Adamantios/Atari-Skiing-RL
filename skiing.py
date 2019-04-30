@@ -15,7 +15,8 @@ from model import atari_skiing_model, huber_loss
 from utils import create_path, atari_preprocess
 
 
-def run_checks():
+def run_checks() -> None:
+    """ Checks the default variables. """
     # TODO add more checks.
     # Create the path to the file, if necessary.
     create_path(filename_prefix)
