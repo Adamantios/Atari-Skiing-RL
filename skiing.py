@@ -1,3 +1,4 @@
+from os import path
 from typing import Union
 
 import gym
@@ -9,6 +10,19 @@ from keras.optimizers import RMSprop
 from agent import EGreedyPolicy, DQN
 from model import atari_skiing_model
 from utils import create_path, atari_preprocess
+
+
+def run_checks():
+    # TODO add more checks.
+    # Create the path to the file, if necessary.
+    create_path(filename_prefix)
+
+    if not path.exists(model_path):
+        raise FileNotFoundError('File {} not found.'.format(model_path))
+
+    if batch_size > total_observe_count:
+        raise ValueError('Batch size({}) should be less than total_observe_count({}).'
+                         .format(batch_size, total_observe_count))
 
 
 def create_skiing_environment():
@@ -90,6 +104,7 @@ def game_loop() -> None:
 if __name__ == '__main__':
     # Create the default parameters.
     filename_prefix = 'out/atari_skiing'
+    model_path = 'out/atari_skiing_1.h5'
     render = True
     downsample_scale = 2
     steps_per_action = 3
@@ -103,13 +118,8 @@ if __name__ == '__main__':
     target_model_change = 100
     replay_memory_size = 400000
 
-    # TODO add more checks.
-    if batch_size > total_observe_count:
-        raise ValueError('Batch size({}) should be less than total_observe_count({}).'
-                         .format(batch_size, total_observe_count))
-
-    # Create the path to the file, if necessary.
-    create_path(filename_prefix)
+    # Check parameters.
+    run_checks()
 
     # Create the skiing environment.
     env, state, pixel_rows, pixel_columns, action_space_size = create_skiing_environment()
