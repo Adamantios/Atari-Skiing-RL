@@ -108,7 +108,7 @@ def end_of_episode_actions(episode, total_score) -> None:
 def game_loop() -> None:
     """ Starts the game loop and trains the agent. """
     # Run for a number of episodes.
-    for episode in range(1, nEpisodes):
+    for episode in range(1, nEpisodes + 1):
         # Init vars.
         max_score, total_score, done = 0, 0, False
 
