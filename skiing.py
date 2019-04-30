@@ -72,7 +72,7 @@ def render_frame() -> None:
 def game_loop() -> None:
     """ Starts the game loop and trains the agent. """
     # Run for a number of episodes.
-    for episode in range(nEpisodes):
+    for episode in range(1, nEpisodes):
         # Init vars.
         max_score, score, done = 0, 0, False
 
@@ -104,7 +104,7 @@ def game_loop() -> None:
 
             replay_memory.append((current_state, action, reward, next_state))
 
-            if episode + 1 > total_observe_count:
+            if episode > total_observe_count:
                 agent.fit()
 
                 if episode % target_model_change == 0:
@@ -114,12 +114,12 @@ def game_loop() -> None:
             current_state = next_state
 
             if max_score < score:
-                print("max score for the episode {} is : {} ".format(episode + 1, score))
+                print("max score for the episode {} is : {} ".format(episode, score))
                 max_score = score
 
-        if episode % 99 == 0:
-            print("final score for the episode {} is : {} ".format(episode + 1, score))
-            model.save("{}_{}.h5".format(filename_prefix, episode + 1))
+        if episode % 100 == 0:
+            print("final score for the episode {} is : {} ".format(episode, score))
+            model.save("{}_{}.h5".format(filename_prefix, episode))
 
 
 if __name__ == '__main__':
