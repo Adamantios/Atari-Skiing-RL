@@ -138,6 +138,7 @@ if __name__ == '__main__':
     epsilon_decay = 1e-4
     target_model_change = 100
     replay_memory_size = 400000
+    plot_train_results = True
 
     # Check variables.
     run_checks()
