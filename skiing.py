@@ -5,10 +5,13 @@ import gym
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
+
+from keras import Model
+from keras.engine.saving import load_model
 from keras.optimizers import RMSprop
 
 from agent import EGreedyPolicy, DQN
-from model import atari_skiing_model
+from model import atari_skiing_model, huber_loss
 from utils import create_path, atari_preprocess
 
 
@@ -41,6 +44,28 @@ def create_skiing_environment():
     act_space_size = environment.action_space.n
 
     return environment, init_state, height, width, act_space_size
+
+
+def create_models() -> [Model, Model]:
+    """
+    Creates the model and the target model.
+
+    :return: the models.
+    """
+    # Init the target model.
+    target = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
+
+    if model_path != '':
+        # Load the model.
+        learning = load_model(model_path, custom_objects={'huber_loss': huber_loss})
+        # Set the target model's weights with the model's.
+        target.set_weights(learning.get_weights())
+
+    else:
+        # Init the model.
+        learning = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
+
+    return learning, target
 
 
 def render_frame() -> None:
@@ -130,9 +155,9 @@ if __name__ == '__main__':
 
     # Create the optimizer.
     optimizer = RMSprop(lr=0.00025, rho=0.95, epsilon=0.01)
-    # Create the model and the target model.
-    model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
-    target_model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
+
+    # Create the models.
+    model, target_model = create_models()
 
     # Create the policy.
     policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, action_space_size)
