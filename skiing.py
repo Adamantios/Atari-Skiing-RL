@@ -1,15 +1,9 @@
 from os import path
-from typing import Union
-
 import gym
-import numpy as np
-import matplotlib.pyplot as plt
 from collections import deque
-
 from keras import Model
 from keras.engine.saving import load_model
 from keras.optimizers import RMSprop
-
 from agent import EGreedyPolicy, DQN
 from model import atari_skiing_model, huber_loss
 from utils import create_path, atari_preprocess
