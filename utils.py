@@ -68,14 +68,14 @@ def create_parser() -> ArgumentParser:
     """
     filename_prefix = 'out/atari_skiing'
     save_interval = 100
-    info_interval = 1
+    info_interval = 100
     target_model_change = 100
     model_path = ''
     plot_train_results = True
     render = True
     downsample_scale = 2
     steps_per_action = 3
-    episodes = 1
+    episodes = 100000
     epsilon = 1.
     final_epsilon = .1
     epsilon_decay = 1e-4
