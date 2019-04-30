@@ -103,6 +103,11 @@ if __name__ == '__main__':
     target_model_change = 100
     replay_memory_size = 400000
 
+    # TODO add more checks.
+    if batch_size > total_observe_count:
+        raise ValueError('Batch size({}) should be less than total_observe_count({}).'
+                         .format(batch_size, total_observe_count))
+
     # Create the path to the file, if necessary.
     create_path(filename_prefix)
 
