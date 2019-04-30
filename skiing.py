@@ -18,6 +18,12 @@ def create_skiing_environment():
     return environment, init_state, height, width, act_space_size
 
 
+def render_frame() -> None:
+    """ Renders a frame, only if the user has chosen to do so. """
+    if render:
+        env.render()
+
+
 def game_loop():
     for episode in range(nEpisodes):
         global epsilon
@@ -25,12 +31,11 @@ def game_loop():
 
         # Reset the environment.
         current_state = env.reset()
-        # Render the environment.
-        env.render()
+        render_frame()
 
         for _ in range(steps_per_action):
             current_state, _, _, _ = env.step(1)
-            env.render()
+            render_frame()
 
         current_state = atari_preprocess(current_state, downsample_scale)
         current_state = np.stack((current_state, current_state, current_state), axis=2)
@@ -46,7 +51,7 @@ def game_loop():
                 epsilon -= epsilon_decay
 
             next_state, reward, done, _ = env.step(action)
-            env.render()
+            render_frame()
 
             next_state = atari_preprocess(next_state, downsample_scale)
             next_state = np.append(next_state, current_state[:, :, :, :5], axis=3)
