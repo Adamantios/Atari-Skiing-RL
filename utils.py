@@ -58,3 +58,69 @@ def create_path(filepath: str) -> None:
     # Create directory if it does not exist
     if not path.exists(directory) and not directory == '':
         makedirs(directory)
+
+
+def create_parser() -> ArgumentParser:
+    """
+    Creates an argument parser for the style transfer script.
+
+    :return: ArgumentParser object.
+    """
+    filename_prefix = 'out/atari_skiing'
+    save_interval = 100
+    info_interval = 1
+    target_model_change = 100
+    model_path = ''
+    plot_train_results = True
+    render = True
+    downsample_scale = 2
+    steps_per_action = 3
+    episodes = 1
+    epsilon = 1.
+    final_epsilon = .1
+    epsilon_decay = 1e-4
+    total_observe_count = 750
+    replay_memory_size = 400000
+    batch_size = 32
+    gamma = .99
+
+    parser = ArgumentParser(description='Trains a DQN agent to play the Atari Skiing game.')
+
+    parser.add_argument('-f', '--filename', type=str, required=False, default=filename_prefix,
+                        help='Filename prefix for the trained model to be saved (default %(default)s).')
+    parser.add_argument('-si', '--save_interval', type=int, default=save_interval, required=False,
+                        help='The save interval for the trained model (default %(default)s).')
+    parser.add_argument('-ii', '--info_interval', type=int, default=info_interval, required=False,
+                        help='The scoring information interval (default %(default)s).')
+    parser.add_argument('-ti', '--target_interval', type=int, default=target_model_change, required=False,
+                        help='The target model change interval (default %(default)s).')
+    parser.add_argument('-m', '--model', type=str, required=False, default=model_path,
+                        help='Filepath for a trained model to be loaded (default %(default)s).')
+    parser.add_argument('-np', '--no_plot', default=not plot_train_results, required=False, action='store_false',
+                        help='Whether the train results should not be plot (default %(default)s).')
+    parser.add_argument('-nr', '--no_render', default=not render, required=False, action='store_false',
+                        help='Whether the environment should not be rendered (default %(default)s).')
+    parser.add_argument('-d', '--downsample', type=int, default=downsample_scale, required=False,
+                        help='The downsampling scale to be used (default %(default)s).')
+    parser.add_argument('-s', '--steps', type=int, default=steps_per_action, required=False,
+                        help='The steps to skip per action (default %(default)s).')
+    parser.add_argument('-e', '--episodes', type=int, default=episodes, required=False,
+                        help='The episodes to run the training procedure (default %(default)s).')
+    parser.add_argument('-eps', '--epsilon', type=int, default=epsilon, required=False,
+                        help='The epsilon for the e-greedy policy (default %(default)s).')
+    parser.add_argument('-feps', '--final_epsilon', type=int, default=final_epsilon, required=False,
+                        help='The final epsilon for the e-greedy policy (default %(default)s).')
+    parser.add_argument('-deps', '--decay', type=int, default=epsilon_decay, required=False,
+                        help='The epsilon decay for the e-greedy policy (default %(default)s).')
+    parser.add_argument('-o', '--observe', type=int, default=total_observe_count, required=False,
+                        help='The total number of observing episodes before the training begins, '
+                             'thus taking random actions (default %(default)s).')
+    parser.add_argument('-rm', '--replay_memory', type=int, default=replay_memory_size, required=False,
+                        help='The replay memory to be used for the agent (default %(default)s).')
+    parser.add_argument('-b', '--batch', type=int, default=batch_size, required=False,
+                        help='The batch size to be randomly sampled from the memory for the training '
+                             '(default %(default)s).')
+    parser.add_argument('-g', '--gamma', type=int, default=gamma, required=False,
+                        help='The discount factor (default %(default)s).')
+
+    return parser

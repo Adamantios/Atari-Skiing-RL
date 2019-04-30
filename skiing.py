@@ -8,7 +8,7 @@ from math import inf
 
 from agent import EGreedyPolicy, DQN
 from model import atari_skiing_model, huber_loss
-from utils import create_path, atari_preprocess
+from utils import create_path, atari_preprocess, create_parser
 
 
 def run_checks() -> None:
@@ -17,7 +17,7 @@ def run_checks() -> None:
     # Create the path to the file, if necessary.
     create_path(filename_prefix)
 
-    if not path.exists(model_path):
+    if not path.exists(model_path) and model_path != '':
         raise FileNotFoundError('File {} not found.'.format(model_path))
 
     if batch_size > total_observe_count:
@@ -112,7 +112,7 @@ def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> No
 def game_loop() -> None:
     """ Starts the game loop and trains the agent. """
     # Run for a number of episodes.
-    for episode in range(1, nEpisodes + 1):
+    for episode in range(1, episodes + 1):
         # Init vars.
         max_score, total_score, done = -inf, 0, False
 
@@ -164,26 +164,27 @@ def game_loop() -> None:
 
 
 if __name__ == '__main__':
-    # Create the default variables.
-    filename_prefix = 'out/atari_skiing'
-    model_path = 'out/atari_skiing_1.h5'
-    render = True
-    downsample_scale = 2
-    steps_per_action = 3
-    nEpisodes = 1
-    epsilon = 1.
-    total_observe_count = 750
-    batch_size = 32
-    gamma = .99
-    final_epsilon = .1
-    epsilon_decay = 1e-4
-    target_model_change = 100
-    replay_memory_size = 400000
-    plot_train_results = True
-    save_interval = 100
-    info_interval = 100
+    # Get arguments.
+    args = create_parser().parse_args()
+    filename_prefix = args.filename
+    save_interval = args.save_interval
+    info_interval = args.info_interval
+    target_model_change = args.target_interval
+    model_path = args.model
+    plot_train_results = not args.no_plot
+    render = not args.no_render
+    downsample_scale = args.downsample
+    steps_per_action = args.steps
+    episodes = args.episodes
+    epsilon = args.epsilon
+    final_epsilon = args.final_epsilon
+    epsilon_decay = args.decay
+    total_observe_count = args.observe
+    replay_memory_size = args.replay_memory
+    batch_size = args.batch
+    gamma = args.gamma
 
-    # Check variables.
+    # Check arguments.
     run_checks()
 
     # Create the skiing environment.
