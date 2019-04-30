@@ -109,7 +109,7 @@ def game_loop() -> None:
 
             replay_memory.append((current_state, action, reward, next_state))
 
-            if episode > total_observe_count:
+            if episode + 1 > total_observe_count:
                 agent.fit()
 
                 if episode % target_model_change == 0:
@@ -119,10 +119,10 @@ def game_loop() -> None:
             current_state = next_state
 
             if max_score < score:
-                print("max score for the episode {} is : {} ".format(episode, score))
+                print("max score for the episode {} is : {} ".format(episode + 1, score))
                 max_score = score
 
-        if episode % 100 == 0:
+        if episode % 99 == 0:
             print("final score for the episode {} is : {} ".format(episode + 1, score))
             model.save("{}_{}.h5".format(filename_prefix, episode + 1))
 
