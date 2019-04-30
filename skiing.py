@@ -54,7 +54,6 @@ def game_loop() -> None:
     # Run for a number of episodes.
     for episode in range(nEpisodes):
         # Init vars.
-        global epsilon
         max_score, score, done = 0, 0, False
 
         # Reset and render the environment.
