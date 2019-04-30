@@ -1,6 +1,7 @@
 from random import randrange, sample
 
 import numpy as np
+from keras.utils import to_categorical
 
 
 class DQN(object):
@@ -25,7 +26,7 @@ class DQN(object):
         for i in range(self.batch_size):
             targets[i] = rewards[i] + self.gamma * np.amax(next_q_values[i])
 
-        one_hot_actions = np.eye(self.action_size)[np.array(actions).reshape(-1)]
+        one_hot_actions = to_categorical(actions, self.action_size)
         one_hot_targets = one_hot_actions * targets[:, None]
 
         self.model.fit([current_state_batch, one_hot_actions],
