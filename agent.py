@@ -4,17 +4,18 @@ import numpy as np
 
 
 class DQN(object):
-    def __init__(self, model, target_model, memory, gamma, batch_size, action_size):
+    def __init__(self, model, target_model, memory, gamma, batch_size, observation_space_shape, action_size):
         self.target_model = target_model
         self.model = model
         self.memory = memory
         self.gamma = gamma
         self.batch_size = batch_size
+        self.observation_space_shape = observation_space_shape
         self.action_size = action_size
 
     def fit(self):
-        current_state_batch, actions, rewards, next_state_batch = get_batch_from_replay_memory(self.batch_size,
-                                                                                               self.memory)
+        current_state_batch, actions, rewards, next_state_batch = \
+            get_batch_from_replay_memory(self.batch_size, self.memory, self.observation_space_shape)
 
         actions_mask = np.ones((self.batch_size, self.action_size))
         next_q_values = self.target_model.predict([next_state_batch, actions_mask])  # separate old model to predict
@@ -41,11 +42,12 @@ def e_greedy_policy_action(e, model, episode, total_observe_count, current_state
         return np.argmax(q_value[0])
 
 
-def get_batch_from_replay_memory(memory, batch_size):
+def get_batch_from_replay_memory(memory, batch_size, observation_space_shape):
     mini_batch = sample(memory, batch_size)
 
-    current_state_batch = np.zeros((batch_size, 84, 84, 4))
-    next_state_batch = np.zeros((batch_size, 84, 84, 4))
+    current_state_batch, next_state_batch = \
+        np.empty((batch_size, observation_space_shape[0], observation_space_shape[1], observation_space_shape[2])), \
+        np.empty((batch_size, observation_space_shape[0], observation_space_shape[1], observation_space_shape[2]))
 
     actions, rewards = [], []
 

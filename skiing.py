@@ -97,6 +97,6 @@ if __name__ == '__main__':
     model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
     target_model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
 
-    agent = DQN(model, target_model, replay_memory, gamma, batch_size, action_space_size)
+    agent = DQN(model, target_model, replay_memory, gamma, batch_size, observation_space_shape, action_space_size)
 
     game_loop()
