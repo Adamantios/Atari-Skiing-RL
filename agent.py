@@ -15,7 +15,7 @@ class DQN(object):
 
     def fit(self):
         current_state_batch, actions, rewards, next_state_batch = \
-            get_batch_from_replay_memory(self.batch_size, self.memory, self.observation_space_shape)
+            get_batch_from_replay_memory(self.memory, self.batch_size, self.observation_space_shape)
 
         actions_mask = np.ones((self.batch_size, self.action_size))
         next_q_values = self.target_model.predict([next_state_batch, actions_mask])  # separate old model to predict
