@@ -4,6 +4,8 @@ from collections import deque
 from keras import Model
 from keras.engine.saving import load_model
 from keras.optimizers import RMSprop
+from math import inf
+
 from agent import EGreedyPolicy, DQN
 from model import atari_skiing_model, huber_loss
 from utils import create_path, atari_preprocess
@@ -69,20 +71,21 @@ def render_frame() -> None:
         env.render()
 
 
-def show_episode_info(episode, total_score) -> None:
+def show_episode_info(episode: int, max_score: int, total_score: int) -> None:
     """
     Shows episode's scoring information.
 
     :param episode: the episode.
+    :param max_score: the max score for this episode.
     :param total_score: the episode's score.
     """
     if episode % info_interval == 0 or info_interval < 2:
         # Print the episode's scores.
-        print("Max score for the episode {} is: {} ".format(episode, total_score))
+        print("Max score for the episode {} is: {} ".format(episode, max_score))
         print("Total score for the episode {} is: {} ".format(episode, total_score))
 
 
-def save_model(episode) -> None:
+def save_model(episode: int) -> None:
     """
     Saves the model after an episode.
 
@@ -92,16 +95,17 @@ def save_model(episode) -> None:
         model.save("{}_{}.h5".format(filename_prefix, episode))
 
 
-def end_of_episode_actions(episode, total_score) -> None:
+def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> None:
     """
     Take actions after the episode finishes.
 
     Show scoring information and saves the model.
 
     :param episode: the episode for which the actions will be taken.
+    :param max_score: the max score for this episode.
     :param total_score: the total score for this episode.
     """
-    show_episode_info(episode, total_score)
+    show_episode_info(episode, max_score, total_score)
     save_model(episode)
 
 
@@ -110,7 +114,7 @@ def game_loop() -> None:
     # Run for a number of episodes.
     for episode in range(1, nEpisodes + 1):
         # Init vars.
-        max_score, total_score, done = 0, 0, False
+        max_score, total_score, done = -inf, 0, False
 
         # Reset and render the environment.
         current_state = env.reset()
@@ -156,7 +160,7 @@ def game_loop() -> None:
             max_score = max(max_score, reward)
 
         # Take end of episode specific actions.
-        end_of_episode_actions(episode, total_score)
+        end_of_episode_actions(episode, max_score, total_score)
 
 
 if __name__ == '__main__':
