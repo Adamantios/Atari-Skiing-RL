@@ -79,7 +79,6 @@ def show_episode_info(episode, total_score) -> None:
     if episode % info_interval == 0 or info_interval < 2:
         # Print the episode's scores.
         print("Max score for the episode {} is: {} ".format(episode, total_score))
-        print("Average score for the episode {} is: {} ".format(episode, total_score))
         print("Total score for the episode {} is: {} ".format(episode, total_score))
 
 
