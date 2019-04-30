@@ -3,7 +3,7 @@ from keras.layers import Lambda, Conv2D, Flatten, Dense, Multiply
 from keras.backend import cast
 
 
-def atari_skiing_model(shape, action_size, optimizer):
+def atari_skiing_model(shape, action_size, optimizer) -> Model:
     inputs = Input(shape, name='inputs')
     actions_input = Input((action_size,), name='action_mask')
 
