@@ -98,10 +98,12 @@ def game_loop() -> None:
         while not done:
             # Take an action, using the policy.
             action = policy.take_action(episode, model, current_state)
-
+            # Take a step, using the action.
             next_state, reward, done, _ = env.step(action)
+            # Render the frame.
             render_frame()
 
+            # Preprocess the state.
             next_state = atari_preprocess(next_state, downsample_scale)
             next_state = np.append(next_state, current_state[:, :, :, :], axis=3)
 
@@ -126,7 +128,7 @@ def game_loop() -> None:
 
 
 if __name__ == '__main__':
-    # Create the default parameters.
+    # Create the default variables.
     filename_prefix = 'out/atari_skiing'
     model_path = 'out/atari_skiing_1.h5'
     render = True
@@ -142,7 +144,7 @@ if __name__ == '__main__':
     target_model_change = 100
     replay_memory_size = 400000
 
-    # Check parameters.
+    # Check variables.
     run_checks()
 
     # Create the skiing environment.
