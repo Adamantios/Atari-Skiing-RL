@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from collections import deque
 from keras.optimizers import RMSprop
 
-from agent import e_greedy_policy_action, DQN
+from agent import EGreedyPolicy, DQN
 from model import atari_skiing_model
 from utils import create_path, atari_preprocess
 
@@ -58,11 +58,8 @@ def game_loop() -> None:
                                     action_space_size))
 
         while not done:
-            action = e_greedy_policy_action(epsilon, model, episode, total_observe_count, current_state,
-                                            action_space_size)
-
-            if epsilon > final_epsilon and episode > total_observe_count:
-                epsilon -= epsilon_decay
+            # Take an action, using the policy.
+            action = policy.take_action(episode, model, current_state)
 
             next_state, reward, done, _ = env.step(action)
             render_frame()
@@ -122,6 +119,9 @@ if __name__ == '__main__':
     # Create the model and the target model.
     model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
     target_model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
+
+    # Create the policy.
+    policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, action_space_size)
 
     # Create the agent.
     agent = DQN(model, target_model, replay_memory, gamma, batch_size, observation_space_shape, action_space_size)

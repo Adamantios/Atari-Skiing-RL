@@ -32,14 +32,33 @@ class DQN(object):
                        one_hot_targets, epochs=1, batch_size=self.batch_size, verbose=0)
 
 
-def e_greedy_policy_action(e, model, episode, total_observe_count, current_state, action_size):
-    if np.random.rand() <= e or episode < total_observe_count:
-        # Take random action.
-        return randrange(action_size)
-    else:
-        # Take the best action.
-        q_value = model.predict([current_state, np.ones(action_size).reshape(1, action_size)])
-        return np.argmax(q_value[0])
+class EGreedyPolicy(object):
+    def __init__(self, e: float, final_e: float, epsilon_decay: float, total_observe_count: int, action_size: int):
+        self.e = e
+        self.final_e = final_e
+        self.epsilon_decay = epsilon_decay
+        self.total_observe_count = total_observe_count
+        self.action_size = action_size
+
+    def _decay_epsilon(self, episode: int) -> float:
+        if self.e > self.final_e and episode > self.total_observe_count:
+            self.e -= self.epsilon_decay
+
+        return self.e
+
+    def take_action(self, episode: int, model, current_state):
+        if np.random.rand() <= self.e or episode < self.total_observe_count:
+            # Take random action.
+            action = randrange(self.action_size)
+        else:
+            # Take the best action.
+            q_value = model.predict([current_state, np.ones(self.action_size).reshape(1, self.action_size)])
+            action = np.argmax(q_value[0])
+
+        # Decay epsilon.
+        self._decay_epsilon(episode)
+
+        return action
 
 
 def get_batch_from_replay_memory(memory, batch_size, observation_space_shape):
