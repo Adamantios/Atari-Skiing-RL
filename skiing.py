@@ -69,26 +69,63 @@ def render_frame() -> None:
         env.render()
 
 
+def show_episode_info(episode, total_score) -> None:
+    """
+    Shows episode's scoring information.
+
+    :param episode: the episode.
+    :param total_score: the episode's score.
+    """
+    if episode % info_interval == 0 or info_interval < 2:
+        # Print the episode's scores.
+        print("Max score for the episode {} is: {} ".format(episode, total_score))
+        print("Average score for the episode {} is: {} ".format(episode, total_score))
+        print("Total score for the episode {} is: {} ".format(episode, total_score))
+
+
+def save_model(episode) -> None:
+    """
+    Saves the model after an episode.
+
+    :param episode: the episode.
+    """
+    if episode % save_interval == 0 or save_interval < 2:
+        model.save("{}_{}.h5".format(filename_prefix, episode))
+
+
+def end_of_episode_actions(episode, total_score) -> None:
+    """
+    Take actions after the episode finishes.
+
+    Show scoring information and saves the model.
+
+    :param episode: the episode for which the actions will be taken.
+    :param total_score: the total score for this episode.
+    """
+    show_episode_info(episode, total_score)
+    save_model(episode)
+
+
 def game_loop() -> None:
     """ Starts the game loop and trains the agent. """
     # Run for a number of episodes.
     for episode in range(1, nEpisodes):
         # Init vars.
-        max_score, score, done = 0, 0, False
+        max_score, total_score, done = 0, 0, False
 
         # Reset and render the environment.
         current_state = env.reset()
         render_frame()
 
-        for _ in range(steps_per_action):
-            current_state, _, _, _ = env.step(1)
-            render_frame()
-
-        current_state = atari_preprocess(current_state, downsample_scale)
-        current_state = np.stack((current_state, current_state, current_state), axis=2)
-        current_state = np.reshape([current_state],
-                                   (1, pixel_rows // downsample_scale, pixel_columns // downsample_scale,
-                                    action_space_size))
+        # for _ in range(steps_per_action):
+        #     current_state, _, _, _ = env.step(1)
+        #     render_frame()
+        #
+        # current_state = atari_preprocess(current_state, downsample_scale)
+        # current_state = np.stack((current_state, current_state, current_state), axis=2)
+        # current_state = np.reshape([current_state],
+        #                            (1, pixel_rows // downsample_scale, pixel_columns // downsample_scale,
+        #                             action_space_size))
 
         while not done:
             # Take an action, using the policy.
@@ -100,26 +137,27 @@ def game_loop() -> None:
 
             # Preprocess the state.
             next_state = atari_preprocess(next_state, downsample_scale)
-            next_state = np.append(next_state, current_state[:, :, :, :], axis=3)
 
+            # next_state = np.append(next_state, current_state[:, :, :, :], axis=3)
+
+            # Save sample <s,a,r,s'> to the replay memory.
             replay_memory.append((current_state, action, reward, next_state))
 
             if episode > total_observe_count:
                 agent.fit()
 
-                if episode % target_model_change == 0:
+                if episode % target_model_change == 0 or target_model_change < 2:
                     target_model.set_weights(model.get_weights())
 
-            score += reward
+            # Add reward to the total score.
+            total_score += reward
+            # Set current state with the next.
             current_state = next_state
+            # Set max score.
+            max_score = max(max_score, reward)
 
-            if max_score < score:
-                print("max score for the episode {} is : {} ".format(episode, score))
-                max_score = score
-
-        if episode % 100 == 0:
-            print("final score for the episode {} is : {} ".format(episode, score))
-            model.save("{}_{}.h5".format(filename_prefix, episode))
+        # Take end of episode specific actions.
+        end_of_episode_actions(episode, total_score)
 
 
 if __name__ == '__main__':
@@ -139,6 +177,8 @@ if __name__ == '__main__':
     target_model_change = 100
     replay_memory_size = 400000
     plot_train_results = True
+    save_interval = 100
+    info_interval = 100
 
     # Check variables.
     run_checks()
