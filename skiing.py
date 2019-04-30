@@ -71,7 +71,7 @@ def render_frame() -> None:
         env.render()
 
 
-def show_episode_info(episode: int, max_score: int, total_score: int) -> None:
+def show_episode_scoring(episode: int, max_score: int, total_score: int) -> None:
     """
     Shows episode's scoring information.
 
@@ -105,7 +105,7 @@ def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> No
     :param max_score: the max score for this episode.
     :param total_score: the total score for this episode.
     """
-    show_episode_info(episode, max_score, total_score)
+    show_episode_scoring(episode, max_score, total_score)
     save_model(episode)
 
 
