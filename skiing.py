@@ -18,7 +18,7 @@ def run_checks() -> None:
         raise FileNotFoundError('File {} not found.'.format(agent_path))
 
     if batch_size > total_observe_count:
-        raise ValueError('Batch size ({}) should be less than total_observe_count ({}).'
+        raise ValueError('Batch size ({}) should be less or equal with the total_observe_count ({}).'
                          .format(batch_size, total_observe_count))
 
 
