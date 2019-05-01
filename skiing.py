@@ -21,7 +21,7 @@ def run_checks() -> None:
         raise FileNotFoundError('File {} not found.'.format(model_path))
 
     if batch_size > total_observe_count:
-        raise ValueError('Batch size({}) should be less than total_observe_count({}).'
+        raise ValueError('Batch size ({}) should be less than total_observe_count ({}).'
                          .format(batch_size, total_observe_count))
 
 
@@ -43,26 +43,20 @@ def create_skiing_environment():
     return environment, init_state, height, width, act_space_size
 
 
-def create_models() -> [Model, Model]:
+def create_model() -> Model:
     """
-    Creates the model and the target model.
+    Creates the atari skiing model.
 
-    :return: the models.
+    :return: the model.
     """
-    # Init the target model.
-    target = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
-
     if model_path != '':
         # Load the model.
         learning = load_model(model_path, custom_objects={'huber_loss': huber_loss})
-        # Set the target model's weights with the model's.
-        target.set_weights(learning.get_weights())
-
     else:
         # Init the model.
         learning = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
 
-    return learning, target
+    return learning
 
 
 def render_frame() -> None:
@@ -85,16 +79,6 @@ def show_episode_scoring(episode: int, max_score: int, total_score: int) -> None
         print("Total score for the episode {} is: {} ".format(episode, total_score))
 
 
-def save_model(episode: int) -> None:
-    """
-    Saves the model after an episode.
-
-    :param episode: the episode.
-    """
-    if episode % save_interval == 0 or save_interval < 2:
-        model.save("{}_{}.h5".format(filename_prefix, episode))
-
-
 def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> None:
     """
     Take actions after the episode finishes.
@@ -107,7 +91,6 @@ def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> No
     """
     show_episode_scoring(episode, max_score, total_score)
     # TODO show episodes mean scoring if info_interval > 1
-    save_model(episode)
 
 
 def game_loop() -> None:
@@ -136,7 +119,7 @@ def game_loop() -> None:
 
         while not done:
             # Take an action, using the policy.
-            action = policy.take_action(episode, model, current_state)
+            action = agent.take_action(current_state, episode)
             # Take a step, using the action.
             next_state, reward, done, _ = env.step(action)
             # Render the frame.
@@ -151,10 +134,7 @@ def game_loop() -> None:
             replay_memory.append((current_state, action, reward, next_state))
 
             if episode > total_observe_count:
-                agent.fit()
-
-                if episode % target_model_change == 0 or target_model_change < 2:
-                    target_model.set_weights(model.get_weights())
+                agent.fit(episode)
 
             # Add reward to the total score.
             total_score += reward
@@ -204,14 +184,15 @@ if __name__ == '__main__':
     # Create the optimizer.
     optimizer = RMSprop(lr=0.00025, rho=0.95, epsilon=0.01)
 
-    # Create the models.
-    model, target_model = create_models()
+    # Create the model.
+    model = create_model()
 
     # Create the policy.
     policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, action_space_size)
 
     # Create the agent.
-    agent = DQN(model, target_model, replay_memory, gamma, batch_size, observation_space_shape, action_space_size)
+    agent = DQN(model, target_model_change, replay_memory, gamma, batch_size, observation_space_shape,
+                action_space_size, save_interval, filename_prefix, policy)
 
     # Start the game loop.
     game_loop()
