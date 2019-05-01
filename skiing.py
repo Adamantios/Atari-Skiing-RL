@@ -7,6 +7,7 @@ from math import inf
 from agent import EGreedyPolicy, DQN
 from model import atari_skiing_model, huber_loss
 from utils import create_path, atari_preprocess, create_parser
+import matplotlib.pyplot as plt
 
 
 def run_checks() -> None:
@@ -71,34 +72,6 @@ def render_frame() -> None:
         env.render()
 
 
-def show_episode_scoring(episode: int, max_score: float, total_score: float) -> None:
-    """
-    Shows an episode's scoring information.
-
-    :param episode: the episode for which the actions will be taken.
-    :param max_score: the episode's max score.
-    :param total_score: the episode's total score.
-    """
-    if episode % info_interval_current == 0 or info_interval_current == 1:
-        # Print the episode's scores.
-        print("Max score for the episode {} is: {} ".format(episode, max_score))
-        print("Total score for the episode {} is: {} ".format(episode, total_score))
-
-
-def show_mean_scoring(episode: int) -> None:
-    """
-    Shows the mean scoring information for the current episode.
-
-    :param episode: the episode.
-    """
-    if info_interval_mean > 1 and episode % info_interval_mean == 0:
-        # Print the episodes mean scores.
-        print("Mean Max score for {}-{} episodes is: {} "
-              .format(episode - info_interval_mean, episode, max_scores.sum() / info_interval_mean))
-        print("Mean Total score for {}-{} episodes is: {} "
-              .format(episode - info_interval_mean, episode, total_scores.sum() / info_interval_mean))
-
-
 def save_agent(episode: int) -> None:
     """
     Saves the agent after a certain episode.
@@ -111,20 +84,72 @@ def save_agent(episode: int) -> None:
         print('Agent has been successfully saved as {}.'.format(filename))
 
 
-def end_of_episode_actions(episode: int, max_score: float, total_score: float) -> None:
+def show_episode_scoring(episode: int) -> None:
+    """
+    Shows an episode's scoring information.
+
+    :param episode: the episode for which the actions will be taken.
+    """
+    if episode % info_interval_current == 0 or info_interval_current == 1:
+        # Print the episode's scores.
+        print("Max score for the episode {} is: {} ".format(episode, max_scores[episode - 1]))
+        print("Total score for the episode {} is: {} ".format(episode, total_scores[episode - 1]))
+
+
+def show_mean_scoring(episode: int) -> None:
+    """
+    Shows the mean scoring information for the current episode.
+
+    :param episode: the episode.
+    """
+    if info_interval_mean > 1 and episode % info_interval_mean == 0:
+        # Print the episodes mean scores.
+        mean_max_score = max_scores[episode - info_interval_mean:episode].sum() / info_interval_mean
+        mean_total_score = total_scores[episode - info_interval_mean:episode].sum() / info_interval_mean
+
+        print("Mean Max score for {}-{} episodes is: {} "
+              .format(episode - info_interval_mean, episode, mean_max_score))
+        print("Mean Total score for {}-{} episodes is: {} "
+              .format(episode - info_interval_mean, episode, mean_total_score))
+
+
+def plot_scores_vs_episodes(episode: int) -> None:
+    """
+    Plots scores vs episodes.
+
+    :param episode: the current episode.
+    """
+    if plot_train_results and episode == episodes:
+        fig = plt.figure(figsize=(12, 10))
+        # Start from 1, not 0.
+        plt.xlim(1, episodes)
+        plt.plot(np.append(np.roll(max_scores, 1), max_scores[episodes - 1]))
+        plt.plot(np.append(np.roll(total_scores, 1), total_scores[episodes - 1]))
+        plt.xticks(range(1, episodes + 1))
+        plt.title('Scores vs Episodes', fontsize='x-large')
+        plt.xlabel('Episode', fontsize='large')
+        plt.ylabel('Score', fontsize='large')
+        plt.legend(['Max Score', 'Total Score'], loc='upper left', fontsize='large')
+        fig.savefig(plot_name)
+
+        if save_plot:
+            plt.show()
+
+        # TODO plot mean huber error per episode vs episodes.
+
+
+def end_of_episode_actions(episode: int) -> None:
     """
     Take actions after the episode finishes.
 
     Show scoring information and saves the model.
 
     :param episode: the episode for which the actions will be taken.
-    :param max_score: the episode's max score.
-    :param total_score: the episode's total score.
     """
     save_agent(episode)
-    show_episode_scoring(episode, max_score, total_score)
+    show_episode_scoring(episode)
     show_mean_scoring(episode)
-    # TODO plot max score and total score vs episode, error vs episode.
+    plot_scores_vs_episodes(episode)
 
 
 def game_loop() -> None:
@@ -177,11 +202,11 @@ def game_loop() -> None:
             max_score = max(max_score, reward)
 
         # Add scores to the scores arrays.
-        max_scores[episode - info_interval_mean] = max_score
-        total_scores[episode - info_interval_mean] = total_score
+        max_scores[episode - 1] = max_score
+        total_scores[episode - 1] = total_score
 
         # Take end of episode specific actions.
-        end_of_episode_actions(episode, max_score, total_score)
+        end_of_episode_actions(episode)
 
 
 if __name__ == '__main__':
@@ -194,7 +219,9 @@ if __name__ == '__main__':
     target_model_change = args.target_interval
     agent_path = args.agent
     agent_frame_history = args.agent_history
-    # plot_train_results = not args.no_plot
+    plot_train_results = not args.no_plot
+    save_plot = not args.no_save_plot
+    plot_name = args.plot_name
     render = not args.no_render
     downsample_scale = args.downsample
     steps_per_action = args.steps
@@ -222,8 +249,8 @@ if __name__ == '__main__':
     agent = create_agent()
 
     # Initialize arrays for the scores.
-    max_scores = np.empty(info_interval_mean)
-    total_scores = np.empty(info_interval_mean)
+    max_scores = np.empty(episodes)
+    total_scores = np.empty(episodes)
 
     # Start the game loop.
     game_loop()

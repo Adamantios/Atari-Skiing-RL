@@ -73,6 +73,8 @@ def create_parser() -> ArgumentParser:
     agent_path = ''
     agent_history = 4
     plot_train_results = True
+    save_plot = True
+    plot_name = 'out/scores_vs_episodes'
     render = True
     downsample_scale = 2
     steps_per_action = 4
@@ -103,6 +105,10 @@ def create_parser() -> ArgumentParser:
                         help='The agent\'s frame history (default %(default)s).')
     parser.add_argument('-np', '--no_plot', default=not plot_train_results, required=False, action='store_false',
                         help='Whether the train results should not be plot (default %(default)s).')
+    parser.add_argument('-nsp', '--no_save_plot', default=not save_plot, required=False, action='store_false',
+                        help='Whether the train results should not be saved (default %(default)s).')
+    parser.add_argument('-p', '--plot_name', type=str, required=False, default=plot_name,
+                        help='Filename for the plot to be saved (default %(default)s).')
     parser.add_argument('-nr', '--no_render', default=not render, required=False, action='store_false',
                         help='Whether the environment should not be rendered (default %(default)s).')
     parser.add_argument('-d', '--downsample', type=int, default=downsample_scale, required=False,
