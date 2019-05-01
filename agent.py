@@ -93,7 +93,7 @@ class DQN(object):
         return current_state_batch, actions, rewards, next_state_batch
 
     def fit(self):
-        if self.policy.steps_taken > self.policy.total_observe_count:
+        if not self.policy.observing:
             self.steps_from_update += 1
 
             current_state_batch, actions, rewards, next_state_batch = self._get_mini_batch()
@@ -122,6 +122,7 @@ class DQN(object):
 
     def update_target_model(self) -> None:
         self.target_model.set_weights(self.model.get_weights())
+        self.steps_from_update = 0
 
     def save_agent(self, filename_prefix: str = 'dqn') -> str:
         """
