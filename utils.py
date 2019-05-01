@@ -3,7 +3,7 @@ from os import makedirs, path
 import numpy as np
 
 
-def rgb2gray(rgb) -> np.ndarray:
+def rgb2gray(rgb: np.ndarray) -> np.ndarray:
     """
     Converts an rgb image array to a grey image array.
 
