@@ -68,18 +68,18 @@ def create_parser() -> ArgumentParser:
     filename_prefix = 'out/atari_skiing'
     save_interval = 100
     info_interval = 100
-    target_model_change = 10000
+    target_model_change = int(1e4)
     agent_path = ''
     plot_train_results = True
     render = True
     downsample_scale = 2
     steps_per_action = 4
-    episodes = 10000
+    episodes = int(1e4)
     epsilon = 1.
     final_epsilon = .1
-    epsilon_decay = 1e-4
-    total_observe_count = 1000
-    replay_memory_size = 4e5
+    epsilon_decay = int(1e-4)
+    total_observe_count = int(1e4)
+    replay_memory_size = int(4e5)
     batch_size = 32
     gamma = .99
 
