@@ -23,7 +23,7 @@ def atari_skiing_model(shape: tuple, action_size: int, optimizer: Optimizer) -> 
     conv_2 = Conv2D(32, (4, 4), strides=(2, 2), activation='relu')(conv_1)
     conv_flattened = Flatten()(conv_2)
     dense = Dense(256, activation='relu')(conv_flattened)
-    # Create and filter the output, multiplying it with the actions input mask, in order to get the QValues.
+    # Create and filter the output, multiplying it with the actions input mask, in order to get the QTable.
     output = Dense(action_size)(dense)
     filtered_output = Multiply()([output, actions_input])
 
