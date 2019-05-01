@@ -71,18 +71,30 @@ def render_frame() -> None:
         env.render()
 
 
-def show_episode_scoring(episode: int, max_score: int, total_score: int) -> None:
+def show_episode_scoring(episode: int) -> None:
     """
     Shows an episode's scoring information.
 
     :param episode: the episode.
-    :param max_score: the max score for this episode.
-    :param total_score: the episode's score.
     """
     if episode % info_interval == 0 or info_interval < 2:
         # Print the episode's scores.
-        print("Max score for the episode {} is: {} ".format(episode, max_score))
-        print("Total score for the episode {} is: {} ".format(episode, total_score))
+        print("Max score for the episode {} is: {} ".format(episode, max_scores[-1]))
+        print("Total score for the episode {} is: {} ".format(episode, total_scores[-1]))
+
+
+def show_mean_scoring(episode: int) -> None:
+    """
+    Shows the mean scoring information for the current episode.
+
+    :param episode: the episode.
+    """
+    if info_interval > 1 and episode % info_interval == 0:
+        # Print the episodes mean scores.
+        print("Mean Max score for {}-{} episodes is: {} "
+              .format(episode - info_interval, episode, max_scores.sum() / info_interval))
+        print("Mean Total score for {}-{} episodes is: {} "
+              .format(episode - info_interval, episode, total_scores.sum() / info_interval))
 
 
 def save_agent(episode: int) -> None:
@@ -97,19 +109,17 @@ def save_agent(episode: int) -> None:
         print('Agent has been successfully saved as {}.'.format(filename))
 
 
-def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> None:
+def end_of_episode_actions(episode: int) -> None:
     """
     Take actions after the episode finishes.
 
     Show scoring information and saves the model.
 
     :param episode: the episode for which the actions will be taken.
-    :param max_score: the max score for this episode.
-    :param total_score: the total score for this episode.
     """
     save_agent(episode)
-    show_episode_scoring(episode, max_score, total_score)
-    # TODO show episodes mean scoring if info_interval > 1
+    show_episode_scoring(episode)
+    show_mean_scoring(episode)
     # TODO plot max score and total score vs episode, error vs episode.
 
 
@@ -162,8 +172,12 @@ def game_loop() -> None:
             # Set max score.
             max_score = max(max_score, reward)
 
+        # Add scores to the scores arrays.
+        max_scores[episode - info_interval] = max_score
+        total_scores[episode - info_interval] = total_score
+
         # Take end of episode specific actions.
-        end_of_episode_actions(episode, max_score, total_score)
+        end_of_episode_actions(episode)
 
 
 if __name__ == '__main__':
@@ -201,6 +215,10 @@ if __name__ == '__main__':
 
     # Create the agent.
     agent = create_agent()
+
+    # Initialize arrays for the scores.
+    max_scores = np.empty(info_interval)
+    total_scores = np.empty(info_interval)
 
     # Start the game loop.
     game_loop()
