@@ -53,7 +53,7 @@ class EGreedyPolicy(object):
             action = randrange(self.action_size)
         else:
             # Take the best action.
-            q_value = model.predict([current_state, np.ones(self.action_size).reshape(1, self.action_size)])
+            q_value = model.predict([current_state, np.expand_dims(np.ones(self.action_size), 0)])
             action = np.argmax(q_value[0])
 
         # Decay epsilon.
