@@ -91,7 +91,7 @@ def save_agent(episode: int) -> None:
 
     :param episode: the episode.
     """
-    if episode % save_interval or save_interval < 2:
+    if episode % save_interval == 0 or save_interval < 2:
         print('Saving agent.')
         filename = agent.save_agent("{}_{}".format(filename_prefix, episode))
         print('Agent has been successfully saved as {}.'.format(filename))
