@@ -50,6 +50,7 @@ def create_agent() -> DQN:
     if agent_path != '':
         # Load the model and the memory.
         model, memory = DQN.load_agent(agent_path, {'huber_loss': huber_loss})
+        print('Agent {} has been loaded successfully.'.format(agent_path))
     else:
         # Init the model.
         model = atari_skiing_model(observation_space_shape, action_space_size, optimizer)
@@ -58,10 +59,8 @@ def create_agent() -> DQN:
 
     # Create the policy.
     policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, action_space_size)
-
     # Create the agent.
-    dqn = DQN(model, target_model_change, memory, gamma, batch_size, observation_space_shape,
-              action_space_size, policy)
+    dqn = DQN(model, target_model_change, memory, gamma, batch_size, observation_space_shape, action_space_size, policy)
 
     return dqn
 
