@@ -196,7 +196,7 @@ if __name__ == '__main__':
     # Create the skiing environment.
     env, state, pixel_rows, pixel_columns, action_space_size = create_skiing_environment()
     # Create the observation space's shape.
-    observation_space_shape = (pixel_rows // downsample_scale, pixel_columns // downsample_scale, steps_per_action)
+    observation_space_shape = (pixel_rows // downsample_scale, pixel_columns // downsample_scale, 1)
 
     # Create the replay memory for the agent.
     replay_memory = deque(maxlen=replay_memory_size)
