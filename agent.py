@@ -15,8 +15,7 @@ class DQN(object):
         self.action_size = action_size
 
     def fit(self):
-        current_state_batch, actions, rewards, next_state_batch = \
-            get_batch_from_replay_memory(self.memory, self.batch_size, self.observation_space_shape)
+        current_state_batch, actions, rewards, next_state_batch = self._get_mini_batch()
 
         actions_mask = np.ones((self.batch_size, self.action_size))
         next_q_values = self.target_model.predict([next_state_batch, actions_mask])  # separate old model to predict
@@ -31,6 +30,31 @@ class DQN(object):
 
         self.model.fit([current_state_batch, one_hot_actions],
                        one_hot_targets, epochs=1, batch_size=self.batch_size, verbose=0)
+
+    def _get_mini_batch(self) -> [np.ndarray]:
+        """
+        Samples a random mini batch from the replay memory.
+
+        :return: the current state batch, the actions batch, the rewards batch and the next state batch
+        """
+        # Randomly sample a mini batch.
+        mini_batch = sample(self.memory, self.batch_size)
+
+        # Initialize arrays.
+        current_state_batch, next_state_batch, actions, rewards = \
+            np.empty(((self.batch_size,) + self.observation_space_shape)), \
+            np.empty(((self.batch_size,) + self.observation_space_shape)), \
+            np.empty(self.batch_size), \
+            np.empty(self.batch_size)
+
+        # Get values from the mini batch.
+        for idx, val in enumerate(mini_batch):
+            current_state_batch[idx] = val[0]
+            actions[idx] = val[1]
+            rewards[idx] = val[2]
+            next_state_batch[idx] = val[3]
+
+        return current_state_batch, actions, rewards, next_state_batch
 
 
 class EGreedyPolicy(object):
@@ -60,32 +84,3 @@ class EGreedyPolicy(object):
         self._decay_epsilon(episode)
 
         return action
-
-
-def get_batch_from_replay_memory(memory, batch_size, observation_space_shape) -> [np.ndarray]:
-    """
-    Samples a random mini batch from the replay memory.
-
-    :param memory: the replay memory.
-    :param batch_size: the batch size to sample.
-    :param observation_space_shape: the observation space's shape.
-    :return: the current state batch, the actions batch, the rewards batch and the next state batch
-    """
-    # Randomly sample a mini batch.
-    mini_batch = sample(memory, batch_size)
-
-    # Initialize arrays.
-    current_state_batch, next_state_batch, actions, rewards = \
-        np.empty(((batch_size,) + observation_space_shape)), \
-        np.empty(((batch_size,) + observation_space_shape)), \
-        np.empty(batch_size), \
-        np.empty(batch_size)
-
-    # Get values from the mini batch.
-    for idx, val in enumerate(mini_batch):
-        current_state_batch[idx] = val[0]
-        actions[idx] = val[1]
-        rewards[idx] = val[2]
-        next_state_batch[idx] = val[3]
-
-    return current_state_batch, actions, rewards, next_state_batch
