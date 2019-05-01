@@ -68,8 +68,8 @@ def create_parser() -> ArgumentParser:
     filename_prefix = 'out/atari_skiing'
     save_interval = 100
     info_interval = 100
-    target_model_change = 100
-    model_path = ''
+    target_model_change = 10000
+    agent_path = ''
     plot_train_results = True
     render = True
     downsample_scale = 2
@@ -88,13 +88,13 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-f', '--filename', type=str, required=False, default=filename_prefix,
                         help='Filename prefix for the trained model to be saved (default %(default)s).')
     parser.add_argument('-si', '--save_interval', type=int, default=save_interval, required=False,
-                        help='The save interval for the trained model (default %(default)s).')
+                        help='The save interval for the trained model (default %(default)s), in episodes.')
     parser.add_argument('-ii', '--info_interval', type=int, default=info_interval, required=False,
-                        help='The scoring information interval (default %(default)s).')
+                        help='The scoring information interval (default %(default)s), in episodes.')
     parser.add_argument('-ti', '--target_interval', type=int, default=target_model_change, required=False,
-                        help='The target model change interval (default %(default)s).')
-    parser.add_argument('-m', '--model', type=str, required=False, default=model_path,
-                        help='Filepath for a trained model to be loaded (default %(default)s).')
+                        help='The target model change interval (default %(default)s), in steps.')
+    parser.add_argument('-a', '--agent', type=str, required=False, default=agent_path,
+                        help='Filepath for a trained agent to be loaded (default %(default)s).')
     parser.add_argument('-np', '--no_plot', default=not plot_train_results, required=False, action='store_false',
                         help='Whether the train results should not be plot (default %(default)s).')
     parser.add_argument('-nr', '--no_render', default=not render, required=False, action='store_false',
@@ -112,7 +112,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-deps', '--decay', type=int, default=epsilon_decay, required=False,
                         help='The epsilon decay for the e-greedy policy (default %(default)s).')
     parser.add_argument('-o', '--observe', type=int, default=total_observe_count, required=False,
-                        help='The total number of observing episodes before the training begins, '
+                        help='The total number of observing steps before the training begins, '
                              'thus taking random actions (default %(default)s).')
     parser.add_argument('-rm', '--replay_memory', type=int, default=replay_memory_size, required=False,
                         help='The replay memory to be used for the agent (default %(default)s).')
