@@ -107,9 +107,10 @@ def end_of_episode_actions(episode: int, max_score: int, total_score: int) -> No
     :param max_score: the max score for this episode.
     :param total_score: the total score for this episode.
     """
+    save_agent(episode)
     show_episode_scoring(episode, max_score, total_score)
     # TODO show episodes mean scoring if info_interval > 1
-    save_agent(episode)
+    # TODO plot max score and total score vs episode, error vs episode.
 
 
 def game_loop() -> None:
@@ -164,8 +165,6 @@ def game_loop() -> None:
 
         # Take end of episode specific actions.
         end_of_episode_actions(episode, max_score, total_score)
-
-    # TODO plot max score and total score vs episode, error vs episode.
 
 
 if __name__ == '__main__':
