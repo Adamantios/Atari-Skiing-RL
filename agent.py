@@ -22,13 +22,13 @@ class EGreedyPolicy(object):
         self.steps_taken = 0
         self.observing = True
 
-    def _decay_epsilon(self) -> float:
+    def _decay_epsilon(self) -> None:
+        """ Decays the policy's epsilon. """
         if self.e > self.final_e and not self.observing:
             self.e -= self.epsilon_decay
 
-        return self.e
-
-    def _update_steps(self):
+    def _update_steps(self) -> None:
+        """ Updates the number of steps and sets the observing value if needed. """
         if self.steps_taken < self.total_observe_count:
             self.steps_taken += 1
             if self.total_observe_count == self.steps_taken:
@@ -36,6 +36,13 @@ class EGreedyPolicy(object):
                 print('Agent has stopped observing.\nThings are about to get serious!\nOr not...')
 
     def take_action(self, model: Model, current_state: np.ndarray) -> int:
+        """
+        Takes an action based on the policy.
+
+        :param model: the model to use.
+        :param current_state: the state for which the action will be taken.
+        :return: the action number.
+        """
         # Update steps.
         self._update_steps()
 
@@ -92,35 +99,53 @@ class DQN(object):
 
         return current_state_batch, actions, rewards, next_state_batch
 
-    def fit(self):
+    def fit(self) -> None:
+        """ Fits the agent. """
+        # Fit only if the agent is not observing.
         if not self.policy.observing:
+            # Increase the steps from update indicator.
             self.steps_from_update += 1
 
+            # Get the mini batches.
             current_state_batch, actions, rewards, next_state_batch = self._get_mini_batch()
 
+            # Create the actions mask.
             actions_mask = np.ones((self.batch_size, self.action_size))
-            next_q_values = self.target_model.predict([next_state_batch, actions_mask])  # separate old model to predict
-
-            targets = np.zeros((self.batch_size,))
+            # Predict the next QValues.
+            next_q_values = self.target_model.predict([next_state_batch, actions_mask])
+            # Initialize the target QValues for the mini batch.
+            target_q_values = np.empty((self.batch_size,))
 
             for i in range(self.batch_size):
-                targets[i] = rewards[i] + self.gamma * np.amax(next_q_values[i])
+                # Update rewards, using the Deep Q Learning rule.
+                target_q_values[i] = rewards[i] + self.gamma * np.amax(next_q_values[i])
 
+            # One hot encode the actions.
             one_hot_actions = to_categorical(actions, self.action_size)
-            one_hot_targets = one_hot_actions * targets[:, None]
+            # One hot encode the target QValues.
+            one_hot_target_q_values = one_hot_actions * np.expand_dims(target_q_values, 1)
 
+            # Fit the model to the batches.
             self.model.fit([current_state_batch, one_hot_actions],
-                           one_hot_targets, epochs=1, batch_size=self.batch_size, verbose=0)
+                           one_hot_target_q_values, epochs=1, batch_size=self.batch_size, verbose=0)
 
+            # Update the target model if necessary.
             if self.steps_from_update == self.target_model_change or self.target_model_change < 1:
                 print('Updating target model.')
                 self.update_target_model()
                 print('Target model has been successfully updated.')
 
     def take_action(self, current_state: np.ndarray) -> int:
+        """
+        Takes an action based on the policy.
+
+        :param current_state: the state for which the action will be taken.
+        :return: the action number.
+        """
         return self.policy.take_action(self.model, current_state)
 
     def update_target_model(self) -> None:
+        """ Updates the target model. """
         self.target_model.set_weights(self.model.get_weights())
         self.steps_from_update = 0
 
@@ -159,7 +184,7 @@ class DQN(object):
     @staticmethod
     def load_agent(filename: str, custom_objects: dict) -> [Model, deque]:
         """
-        Loads the agent.
+        Loads an agent from a file.
 
         :param filename: the agent's filename.
         :param custom_objects: custom_objects for the keras model.
@@ -189,5 +214,13 @@ class DQN(object):
 
         return model, memory
 
-    def append_to_memory(self, current_state, action, reward, next_state):
+    def append_to_memory(self, current_state: np.ndarray, action: int, reward: float, next_state: np.ndarray) -> None:
+        """
+        Adds values to the agent's memory.
+
+        :param current_state: the state to add.
+        :param action: the action to add.
+        :param reward: the reward to add.
+        :param next_state: the next state to add.
+        """
         self.memory.append((current_state, action, reward, next_state))
