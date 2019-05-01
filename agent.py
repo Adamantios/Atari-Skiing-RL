@@ -62,19 +62,30 @@ class EGreedyPolicy(object):
         return action
 
 
-def get_batch_from_replay_memory(memory, batch_size, observation_space_shape):
+def get_batch_from_replay_memory(memory, batch_size, observation_space_shape) -> [np.ndarray]:
+    """
+    Samples a random mini batch from the replay memory.
+
+    :param memory: the replay memory.
+    :param batch_size: the batch size to sample.
+    :param observation_space_shape: the observation space's shape.
+    :return: the current state batch, the actions batch, the rewards batch and the next state batch
+    """
+    # Randomly sample a mini batch.
     mini_batch = sample(memory, batch_size)
 
-    current_state_batch, next_state_batch = \
-        np.empty((batch_size, observation_space_shape[0], observation_space_shape[1], observation_space_shape[2])), \
-        np.empty((batch_size, observation_space_shape[0], observation_space_shape[1], observation_space_shape[2]))
+    # Initialize arrays.
+    current_state_batch, next_state_batch, actions, rewards = \
+        np.empty(((batch_size,) + observation_space_shape)), \
+        np.empty(((batch_size,) + observation_space_shape)), \
+        np.empty(batch_size), \
+        np.empty(batch_size)
 
-    actions, rewards = [], []
-
+    # Get values from the mini batch.
     for idx, val in enumerate(mini_batch):
         current_state_batch[idx] = val[0]
-        actions.append(val[1])
-        rewards.append(val[2])
+        actions[idx] = val[1]
+        rewards[idx] = val[2]
         next_state_batch[idx] = val[3]
 
     return current_state_batch, actions, rewards, next_state_batch
