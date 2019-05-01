@@ -121,6 +121,9 @@ def game_loop() -> None:
         current_state = env.reset()
         render_frame()
 
+        # Preprocess current state.
+        current_state = atari_preprocess(current_state, downsample_scale)
+
         # for _ in range(steps_per_action):
         #     current_state, _, _, _ = env.step(1)
         #     render_frame()
