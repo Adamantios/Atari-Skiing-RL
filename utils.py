@@ -73,13 +73,13 @@ def create_parser() -> ArgumentParser:
     plot_train_results = True
     render = True
     downsample_scale = 2
-    steps_per_action = 3
-    episodes = 100000
+    steps_per_action = 4
+    episodes = 10000
     epsilon = 1.
     final_epsilon = .1
     epsilon_decay = 1e-4
-    total_observe_count = 750
-    replay_memory_size = 400000
+    total_observe_count = 1000
+    replay_memory_size = 4e5
     batch_size = 32
     gamma = .99
 
