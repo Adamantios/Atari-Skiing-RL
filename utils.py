@@ -67,7 +67,8 @@ def create_parser() -> ArgumentParser:
     """
     filename_prefix = 'out/atari_skiing'
     save_interval = 100
-    info_interval = 100
+    info_interval_current = 20
+    info_interval_mean = 100
     target_model_change = int(1e4)
     agent_path = ''
     agent_history = 4
@@ -90,8 +91,10 @@ def create_parser() -> ArgumentParser:
                         help='Filename prefix for the trained model to be saved (default %(default)s).')
     parser.add_argument('-si', '--save_interval', type=int, default=save_interval, required=False,
                         help='The save interval for the trained model (default %(default)s), in episodes.')
-    parser.add_argument('-ii', '--info_interval', type=int, default=info_interval, required=False,
-                        help='The scoring information interval (default %(default)s), in episodes.')
+    parser.add_argument('-iic', '--info_interval_current', type=int, default=info_interval_current, required=False,
+                        help='The current scoring information interval (default %(default)s), in episodes.')
+    parser.add_argument('-iim', '--info_interval_mean', type=int, default=info_interval_mean, required=False,
+                        help='The mean scoring information interval (default %(default)s), in episodes.')
     parser.add_argument('-ti', '--target_interval', type=int, default=target_model_change, required=False,
                         help='The target model change interval (default %(default)s), in steps.')
     parser.add_argument('-a', '--agent', type=str, required=False, default=agent_path,
