@@ -62,7 +62,7 @@ def create_path(filepath: str) -> None:
 
 def create_parser() -> ArgumentParser:
     """
-    Creates an argument parser for the style transfer script.
+    Creates an argument parser for the atari skiing script.
 
     :return: ArgumentParser object.
     """
