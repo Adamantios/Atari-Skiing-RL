@@ -1,6 +1,7 @@
 from os import path
 import gym
 from collections import deque
+import numpy as np
 from keras.optimizers import RMSprop
 from math import inf
 from agent import EGreedyPolicy, DQN
@@ -124,18 +125,18 @@ def game_loop() -> None:
         current_state = env.reset()
         render_frame()
 
-        # Preprocess current state.
+        # Preprocess current_state.
         current_state = atari_preprocess(current_state, downsample_scale)
 
-        # for _ in range(steps_per_action):
-        #     current_state, _, _, _ = env.step(1)
-        #     render_frame()
-        #
-        # current_state = atari_preprocess(current_state, downsample_scale)
-        # current_state = np.stack((current_state, current_state, current_state), axis=2)
-        # current_state = np.reshape([current_state],
-        #                            (1, pixel_rows // downsample_scale, pixel_columns // downsample_scale,
-        #                             action_space_size))
+        # Create preceding frames, using the starting frame.
+        current_state = np.stack(tuple([current_state for _ in range(agent_frame_history)]), axis=2)
+
+        # Set current state with the stacked.
+        current_state = np.reshape(current_state,
+                                   (1,
+                                    pixel_rows // downsample_scale,
+                                    pixel_columns // downsample_scale,
+                                    agent_frame_history))
 
         while not done:
             # Take an action, using the policy.
@@ -147,12 +148,11 @@ def game_loop() -> None:
 
             # Preprocess the state.
             next_state = atari_preprocess(next_state, downsample_scale)
-
-            # next_state = np.append(next_state, current_state[:, :, :, :], axis=3)
+            # Append the frame history.
+            next_state = np.append(next_state, current_state[:, :, :, :agent_frame_history - 1], axis=3)
 
             # Save sample <s,a,r,s'> to the replay memory.
             agent.append_to_memory(current_state, action, reward, next_state)
-
             # Fit agent.
             agent.fit()
 
@@ -175,6 +175,7 @@ if __name__ == '__main__':
     info_interval = args.info_interval
     target_model_change = args.target_interval
     agent_path = args.agent
+    agent_frame_history = args.agent_history
     # plot_train_results = not args.no_plot
     render = not args.no_render
     downsample_scale = args.downsample
@@ -194,7 +195,7 @@ if __name__ == '__main__':
     # Create the skiing environment.
     env, state, pixel_rows, pixel_columns, action_space_size = create_skiing_environment()
     # Create the observation space's shape.
-    observation_space_shape = (pixel_rows // downsample_scale, pixel_columns // downsample_scale, 1)
+    observation_space_shape = (pixel_rows // downsample_scale, pixel_columns // downsample_scale, agent_frame_history)
 
     # Create the optimizer.
     optimizer = RMSprop(lr=0.00025, rho=0.95, epsilon=0.01)

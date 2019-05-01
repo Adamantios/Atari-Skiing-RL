@@ -41,7 +41,7 @@ def atari_preprocess(frame_array: np.ndarray, downsample_scale: int = 2) -> np.n
     # Downsampling the image.
     resized_frame = downsample(greyscale_frame, downsample_scale)
 
-    # Reshape for batches and return.
+    # Reshape for batches and frames and return.
     return resized_frame[np.newaxis, :, :, np.newaxis]
 
 
@@ -70,6 +70,7 @@ def create_parser() -> ArgumentParser:
     info_interval = 100
     target_model_change = int(1e4)
     agent_path = ''
+    agent_history = 4
     plot_train_results = True
     render = True
     downsample_scale = 2
@@ -95,6 +96,8 @@ def create_parser() -> ArgumentParser:
                         help='The target model change interval (default %(default)s), in steps.')
     parser.add_argument('-a', '--agent', type=str, required=False, default=agent_path,
                         help='Filepath for a trained agent to be loaded (default %(default)s).')
+    parser.add_argument('-ah', '--agent_history', type=int, required=False, default=agent_history,
+                        help='The agent\'s frame history (default %(default)s).')
     parser.add_argument('-np', '--no_plot', default=not plot_train_results, required=False, action='store_false',
                         help='Whether the train results should not be plot (default %(default)s).')
     parser.add_argument('-nr', '--no_render', default=not render, required=False, action='store_false',
