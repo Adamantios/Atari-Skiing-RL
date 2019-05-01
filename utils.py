@@ -42,8 +42,7 @@ def atari_preprocess(frame_array: np.ndarray, downsample_scale: int = 2) -> np.n
     resized_frame = downsample(greyscale_frame, downsample_scale)
 
     # Reshape for batches and return.
-    return np.reshape([resized_frame],
-                      (1, frame_array.shape[0] // downsample_scale, frame_array.shape[1] // downsample_scale))
+    return resized_frame[np.newaxis, :, :, np.newaxis]
 
 
 def create_path(filepath: str) -> None:
