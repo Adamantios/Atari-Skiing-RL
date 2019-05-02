@@ -81,7 +81,7 @@ def create_parser() -> ArgumentParser:
     episodes = int(1e4)
     epsilon = 1.
     final_epsilon = .1
-    epsilon_decay = int(1e-4)
+    epsilon_decay = float(1e-4)
     total_observe_count = int(1e4)
     replay_memory_size = int(4e5)
     batch_size = 32
