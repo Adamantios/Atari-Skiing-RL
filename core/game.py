@@ -49,28 +49,26 @@ class Game(object):
         if self._render:
             self._env.render()
 
-    def _take_actions(self, agent: DQN, current_state: np.ndarray) -> [float, np.ndarray]:
+    def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> [float, np.ndarray]:
         """
         Takes game actions.
 
         :param agent: the agent to take the actions.
         :param current_state: the current state.
+        :param action: the action to repeat.
         :return: the next state, the reward and if game is done.
         """
         # Init variables.
         reward, next_state, done = 0, current_state, False
 
         for _ in range(self._steps_per_action):
-            # Take an action, using the policy.
-            action = agent.take_action(current_state)
             # Take a step, using the action.
             next_state, reward, done, _ = self._env.step(action)
+            # Render the frame.
+            self._render_frame()
 
             if done:
                 return next_state, reward, done
-
-            # Render the frame.
-            self._render_frame()
 
             # Preprocess the state.
             next_state = atari_preprocess(next_state, self._downsample_scale)
@@ -79,6 +77,9 @@ class Game(object):
 
             # Save sample <s,a,r,s'> to the replay memory.
             agent.append_to_memory(current_state, action, reward, next_state)
+
+            # Set current state with the next.
+            current_state = next_state
 
         return next_state, reward, done
 
@@ -112,7 +113,10 @@ class Game(object):
                                         self._agent_frame_history))
 
             while not done:
-                next_state, reward, done = self._take_actions(agent, current_state)
+                # Take an action, using the policy.
+                action = agent.take_action(current_state)
+                # Repeat the action.
+                current_state, reward, done = self._repeat_action(agent, current_state, action)
 
                 # Fit agent and keep fitting history.
                 fitting_history = agent.fit()
@@ -121,8 +125,6 @@ class Game(object):
 
                 # Add reward to the total score.
                 total_score += reward
-                # Set current state with the next.
-                current_state = next_state
                 # Set max score.
                 max_score = max(max_score, reward)
 
