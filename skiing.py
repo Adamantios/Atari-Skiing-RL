@@ -1,27 +1,74 @@
 from os import path
+from warnings import warn
+
 import gym
 from collections import deque
 import numpy as np
 from keras.optimizers import RMSprop
-from math import inf
+from math import inf, ceil
+
 from agent import EGreedyPolicy, DQN
-from model import atari_skiing_model, huber_loss
+from model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net
 from utils import create_path, atari_preprocess, create_parser
 import matplotlib.pyplot as plt
 
 
 def run_checks() -> None:
-    """ Checks the default variables. """
-    # TODO add more checks.
-    # Create the path to the file, if necessary.
+    """ Checks the input arguments. """
+    # Set default variables.
+    poor_observe = bad_target_model_change = 500
+    frame_history_ceiling = 10
+
+    # Create the path to the files, if necessary.
     create_path(filename_prefix)
+    create_path(plot_name)
+
+    if info_interval_mean == 1:
+        warn('Info interval mean has no point to be 1. '
+             'The program will continue, but the means will be ignored.'.format(info_interval_mean))
+
+    if target_model_change < bad_target_model_change:
+        warn('Target model change is extremely small ({}). This will possibly make the agent unstable.'
+             'Consider a value greater than {}'.format(target_model_change, bad_target_model_change))
 
     if not path.exists(agent_path) and agent_path != '':
         raise FileNotFoundError('File {} not found.'.format(agent_path))
 
-    if batch_size > total_observe_count:
-        raise ValueError('Batch size ({}) should be less or equal with the total_observe_count ({}).'
-                         .format(batch_size, total_observe_count))
+    if agent_frame_history > frame_history_ceiling:
+        warn('The agent\'s frame history is too big ({}). This will possibly make the agent unstable and slower.'
+             'Consider a value smaller than {}'.format(agent_frame_history, frame_history_ceiling))
+
+    if downsample_scale == 1:
+        warn('Downsample scale set to 1. This means that the atari frames will not be scaled down.')
+
+    # Downsampling should result with at least 32 pixels on each dimension,
+    # because the first convolutional layer has a filter 8x8 with stride 4x4.
+    if not frame_can_pass_the_net(observation_space_shape[0], observation_space_shape[1]):
+        raise ValueError('Downsample is too big. It can be set from 1 to {}'
+                         .format(min(int(pixel_rows / min_frame_dim_that_passes_net()),
+                                     int(pixel_columns / min_frame_dim_that_passes_net()))))
+
+    if plot_train_results and episodes == 1:
+        warn('Cannot plot for 1 episode only.')
+
+    if epsilon > 1:
+        raise ValueError('Epsilon cannot be set to a greater value than 1.'
+                         'Got {}'.format(epsilon))
+
+    if final_epsilon > 1:
+        raise ValueError('Epsilon cannot be set to a greater value than 1.'
+                         'Got {}'.format(final_epsilon))
+
+    if final_epsilon > epsilon:
+        raise ValueError('Final epsilon ({}) cannot be greater than epsilon ({}).'
+                         .format(final_epsilon, epsilon))
+
+    if epsilon_decay > final_epsilon - epsilon:
+        warn('Epsilon decay is too big ({})!'.format(epsilon_decay))
+
+    if total_observe_count < poor_observe:
+        warn('The total number of observing steps ({}) is too small and could bring poor results.'
+             'Consider a value grater than {}'.format(total_observe_count, poor_observe))
 
 
 def create_skiing_environment():
@@ -224,7 +271,9 @@ if __name__ == '__main__':
     plot_name = args.plot_name
     render = not args.no_render
     downsample_scale = args.downsample
-    steps_per_action = args.steps
+    # TODO steps_per_action = args.steps
+    # TODO add fit frequency.
+    # TODO add maximum no operation at start argument.
     episodes = args.episodes
     epsilon = args.epsilon
     final_epsilon = args.final_epsilon
@@ -246,6 +295,7 @@ if __name__ == '__main__':
     run_checks()
 
     # Create the optimizer.
+    # TODO make it argument.
     optimizer = RMSprop(lr=0.00025, rho=0.95, epsilon=0.01)
 
     # Create the agent.
