@@ -54,9 +54,9 @@ class Game(object):
 
     def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> GameInfo:
         """
-        Takes game actions.
+        Repeats a game action.
 
-        :param agent: the agent to take the actions.
+        :param agent: the agent to repeat the action.
         :param current_state: the current state.
         :param action: the action to repeat.
         :return: the next state, the reward and if game is done.
@@ -88,7 +88,7 @@ class Game(object):
 
     def _take_action(self, agent: DQN, current_state: np.ndarray) -> GameInfo:
         """
-        Take action.
+        Takes an action.
 
         :param agent: the agent to take the action.
         :param current_state: the current state.
