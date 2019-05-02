@@ -119,7 +119,7 @@ def plot_scores_vs_episodes(episode: int) -> None:
 
     :param episode: the current episode.
     """
-    if plot_train_results and episode == episodes:
+    if plot_train_results and episode == episodes and episodes > 1:
         fig = plt.figure(figsize=(12, 10))
         # Start from 1, not 0.
         plt.xlim(1, episodes)
