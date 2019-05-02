@@ -1,7 +1,9 @@
+from typing import Union
+
 from keras import Input, Model
 from keras.layers import Lambda, Conv2D, Flatten, Dense, Multiply
 from keras.backend import cast
-from keras.optimizers import Optimizer
+from keras.optimizers import Optimizer, adam, rmsprop, sgd, adagrad, adadelta, adamax
 
 
 def min_frame_dim_that_passes_net() -> int:
@@ -16,7 +18,7 @@ def min_frame_dim_that_passes_net() -> int:
     return 20
 
 
-def frame_can_pass_the_net(height, width) -> bool:
+def frame_can_pass_the_net(height: int, width: int) -> bool:
     """
     Returns if a frame can successfully pass through the network.
 
@@ -56,6 +58,39 @@ def atari_skiing_model(shape: tuple, action_size: int, optimizer: Optimizer) -> 
     model.compile(optimizer, loss=huber_loss)
 
     return model
+
+
+def initialize_optimizer(optimizer_name: str, learning_rate: float, beta1: float, beta2: float,
+                         lr_decay: float, rho: float, fuzz: float, momentum: float) \
+        -> Union[adam, rmsprop, sgd, adagrad, adadelta, adamax]:
+    """
+    Initializes an optimizer based on the user's choices.
+
+    :param optimizer_name: the optimizer's name.
+        Can be one of 'adam', 'rmsprop', 'sgd', 'adagrad', 'adadelta', 'adamax'.
+    :param learning_rate: the optimizer's learning_rate
+    :param beta1: the optimizer's beta1
+    :param beta2: the optimizer's beta2
+    :param lr_decay: the optimizer's lr_decay
+    :param rho: the optimizer's rho
+    :param fuzz: the optimizer's fuzz
+    :param momentum: the optimizer's momentum
+    :return: the optimizer.
+    """
+    if optimizer_name == 'adam':
+        return adam(lr=learning_rate, beta_1=beta1, beta_2=beta2, decay=lr_decay)
+    elif optimizer_name == 'rmsprop':
+        return rmsprop(lr=learning_rate, rho=rho, epsilon=fuzz)
+    elif optimizer_name == 'sgd':
+        return sgd(lr=learning_rate, momentum=momentum, decay=lr_decay)
+    elif optimizer_name == 'adagrad':
+        return adagrad(lr=learning_rate, decay=lr_decay)
+    elif optimizer_name == 'adadelta':
+        return adadelta(lr=learning_rate, rho=rho, decay=lr_decay)
+    elif optimizer_name == 'adamax':
+        return adamax(lr=learning_rate, beta_1=beta1, beta_2=beta2, decay=lr_decay)
+    else:
+        raise ValueError('An unexpected optimizer name has been encountered.')
 
 
 def huber_loss(y_true, y_pred):

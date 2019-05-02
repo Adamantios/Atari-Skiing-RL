@@ -1,19 +1,13 @@
 from os import path
-from typing import Union
 from warnings import warn
-
 from collections import deque
-
-from keras.optimizers import adam, rmsprop, sgd, adagrad, adadelta, adamax
-
 from core.agent import EGreedyPolicy, DQN
 from core.game import Game
-from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net
-
+from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \
+    initialize_optimizer
 from utils.os_operations import create_path
 from utils.parser import create_parser
 from utils.plotting import Plotter
-
 from utils.scoring import Scorer
 
 
@@ -74,28 +68,6 @@ def run_checks() -> None:
     if total_observe_count < poor_observe:
         warn('The total number of observing steps ({}) is too small and could bring poor results.'
              'Consider a value grater than {}'.format(total_observe_count, poor_observe))
-
-
-def initialize_optimizer() -> Union[adam, rmsprop, sgd, adagrad, adadelta, adamax]:
-    """
-    Initializes an optimizer based on the user's choices.
-
-    :return: the optimizer.
-    """
-    if optimizer_name == 'adam':
-        return adam(lr=learning_rate, beta_1=beta1, beta_2=beta2, decay=lr_decay)
-    elif optimizer_name == 'rmsprop':
-        return rmsprop(lr=learning_rate, rho=rho, epsilon=fuzz)
-    elif optimizer_name == 'sgd':
-        return sgd(lr=learning_rate, momentum=momentum, decay=lr_decay)
-    elif optimizer_name == 'adagrad':
-        return adagrad(lr=learning_rate, decay=lr_decay)
-    elif optimizer_name == 'adadelta':
-        return adadelta(lr=learning_rate, rho=rho, decay=lr_decay)
-    elif optimizer_name == 'adamax':
-        return adamax(lr=learning_rate, beta_1=beta1, beta_2=beta2, decay=lr_decay)
-    else:
-        raise ValueError('An unexpected optimizer name has been encountered.')
 
 
 def create_agent() -> DQN:
@@ -206,7 +178,7 @@ if __name__ == '__main__':
     run_checks()
 
     # Create the optimizer.
-    optimizer = initialize_optimizer()
+    optimizer = initialize_optimizer(optimizer_name, learning_rate, beta1, beta2, lr_decay, rho, fuzz, momentum)
 
     # Create the agent.
     agent = create_agent()
