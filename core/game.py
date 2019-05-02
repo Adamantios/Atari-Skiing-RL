@@ -66,9 +66,11 @@ class Game(object):
 
         for _ in range(self._steps_per_action):
             # Take a step, using the action.
-            next_state, reward, done, _ = self._env.step(action)
+            next_state, new_reward, done, _ = self._env.step(action)
             # Render the frame.
             self._render_frame()
+            # Add reward.
+            reward += new_reward
 
             if done:
                 break
@@ -115,7 +117,10 @@ class Game(object):
 
         # Repeat actions before fitting time.
         for _ in range(self._fit_frequency):
-            next_state, reward, done = self._take_action(agent, current_state)
+            # Take an action.
+            next_state, new_reward, done = self._take_action(agent, current_state)
+            # Add reward.
+            reward += new_reward
             if done:
                 break
 
