@@ -27,6 +27,9 @@ class EGreedyPolicy(object):
         if self.e > self.final_e and not self.observing:
             self.e -= self.epsilon_decay
 
+            if self.e < self.final_e:
+                self.e = self.final_e
+
     def _update_steps(self) -> None:
         """ Updates the number of steps and sets the observing value if needed. """
         if self.steps_taken < self.total_observe_count:
