@@ -59,6 +59,5 @@ class Plotter(object):
             plt.title('Total Huber loss vs episodes', fontsize='x-large')
             plt.xlabel('Episode', fontsize='large')
             plt.ylabel('Loss', fontsize='large')
-            plt.legend(['train', 'test'], loc='upper left', fontsize='large')
 
             self._plot_and_save(fig, self.plots_name_prefix + '_loss_vs_episodes.png')
