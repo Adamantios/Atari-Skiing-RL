@@ -153,7 +153,7 @@ class Game(object):
             # Create preceding frames, using the starting frame.
             current_state = np.stack(tuple([current_state for _ in range(self._agent_frame_history)]), axis=2)
 
-            # Set current state with the stacked.
+            # Reshape the state.
             current_state = np.reshape(current_state,
                                        (1,
                                         ceil(self.pixel_rows / self._downsample_scale),
