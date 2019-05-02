@@ -71,6 +71,10 @@ def run_checks() -> None:
         warn('The total number of observing steps ({}) is too small and could bring poor results.'
              'Consider a value grater than {}'.format(total_observe_count, poor_observe))
 
+    if total_observe_count < batch_size:
+        raise ValueError('The total number of observing steps ({}) cannot be smaller than the batch size ({}).'
+                         .format(total_observe_count, batch_size))
+
 
 def create_agent() -> DQN:
     """
