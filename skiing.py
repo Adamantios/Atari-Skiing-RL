@@ -1,3 +1,4 @@
+import pickle
 from os import path
 from typing import Union
 from warnings import warn
@@ -21,8 +22,9 @@ def run_checks() -> None:
     frame_history_ceiling = 10
 
     # Create the path to the files, if necessary.
-    create_path(filename_prefix)
-    create_path(plot_name)
+    create_path(agent_name_prefix)
+    create_path(plots_name_prefix)
+    create_path(results_name_prefix)
 
     if info_interval_mean == 1:
         warn('Info interval mean has no point to be 1. '
@@ -150,7 +152,7 @@ def save_agent(episode: int) -> None:
     """
     if episode % save_interval == 0 or save_interval == 1:
         print('Saving agent.')
-        filename = agent.save_agent("{}_{}".format(filename_prefix, episode))
+        filename = agent.save_agent("{}_{}".format(agent_name_prefix, episode))
         print('Agent has been successfully saved as {}.'.format(filename))
 
 
@@ -200,7 +202,7 @@ def plot_scores_vs_episodes() -> None:
         plt.show()
 
     if save_plot:
-        fig.savefig(plot_name + '_scores_vs_episodes.png')
+        fig.savefig(plots_name_prefix + '_scores_vs_episodes.png')
 
 
 def plot_loss_vs_episodes() -> None:
@@ -219,7 +221,34 @@ def plot_loss_vs_episodes() -> None:
         plt.show()
 
     if save_plot:
-        fig.savefig(plot_name + '_loss_vs_episodes.png')
+        fig.savefig(plots_name_prefix + '_loss_vs_episodes.png')
+
+
+def save_results(episode: int) -> None:
+    """
+    Saves the results in files.
+
+    :param episode: the current episode.
+    """
+    if results_save_interval > 0 and (episodes % results_save_interval == 0 or results_save_interval == 1):
+        print('Saving results.')
+
+        # Save total scores.
+        with open('{}_total_scores_episode{}'.format(results_name_prefix, episode), 'wb') as stream:
+            pickle.dump(total_scores, stream, protocol=pickle.HIGHEST_PROTOCOL)
+            stream.close()
+
+        # Save max scores.
+        with open('{}_max_scores_episode{}'.format(results_name_prefix, episode), 'wb') as stream:
+            pickle.dump(max_scores, stream, protocol=pickle.HIGHEST_PROTOCOL)
+            stream.close()
+
+        # Save losses.
+        with open('{}_losses_episode{}'.format(results_name_prefix, episode), 'wb') as stream:
+            pickle.dump(huber_loss_history, stream, protocol=pickle.HIGHEST_PROTOCOL)
+            stream.close()
+
+        print('Results have been saved successfully.')
 
 
 def end_of_episode_actions(episode: int) -> None:
@@ -236,6 +265,7 @@ def end_of_episode_actions(episode: int) -> None:
     if episode == episodes and episodes > 1:
         plot_scores_vs_episodes()
         plot_loss_vs_episodes()
+    save_results(episode)
 
 
 def game_loop() -> None:
@@ -300,7 +330,9 @@ def game_loop() -> None:
 if __name__ == '__main__':
     # Get arguments.
     args = create_parser().parse_args()
-    filename_prefix = args.filename_prefix
+    agent_name_prefix = args.filename_prefix
+    results_name_prefix = args.results_name_prefix
+    results_save_interval = args.results_save_interval
     save_interval = args.save_interval
     info_interval_current = args.info_interval_current
     info_interval_mean = args.info_interval_mean
@@ -309,7 +341,7 @@ if __name__ == '__main__':
     agent_frame_history = args.agent_history
     plot_train_results = not args.no_plot
     save_plot = not args.no_save_plot
-    plot_name = args.plot_name
+    plots_name_prefix = args.plot_name
     render = not args.no_render
     downsample_scale = args.downsample
     # TODO steps_per_action = args.steps

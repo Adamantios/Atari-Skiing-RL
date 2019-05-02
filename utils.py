@@ -67,7 +67,9 @@ def create_parser() -> ArgumentParser:
     """
     filename_prefix = 'out/models/atari_skiing'
     plot_name_prefix = 'out/plots/atari_skiing'
+    results_name_prefix = 'out/results/atari_skiing'
     save_interval = 100
+    results_save_interval = 100
     info_interval_current = 20
     info_interval_mean = 100
     target_model_change = int(1e4)
@@ -128,8 +130,13 @@ def create_parser() -> ArgumentParser:
 
     parser.add_argument('-fp', '--filename_prefix', type=str, required=False, default=filename_prefix,
                         help='Filename prefix for the trained model to be saved (default %(default)s).')
+    parser.add_argument('-hp', '--results_name_prefix', type=str, required=False, default=results_name_prefix,
+                        help='Filename prefix for the loss history to be saved (default %(default)s).')
     parser.add_argument('-si', '--save_interval', type=positive_int, default=save_interval, required=False,
                         help='The save interval for the trained model (default %(default)s), in episodes.')
+    parser.add_argument('-rsi', '--results_save_interval', type=int, default=results_save_interval, required=False,
+                        help='The save interval for the results history (default %(default)s), in episodes.'
+                             'Insert a negative value to not save the results history.')
     parser.add_argument('-iic', '--info_interval_current',
                         type=positive_int, default=info_interval_current, required=False,
                         help='The current scoring information interval (default %(default)s), in episodes.')
