@@ -63,7 +63,7 @@ def run_checks() -> None:
         raise ValueError('Final epsilon ({}) cannot be greater than epsilon ({}).'
                          .format(final_epsilon, epsilon))
 
-    if epsilon_decay > final_epsilon - epsilon:
+    if epsilon_decay > epsilon - final_epsilon:
         warn('Epsilon decay is too big ({})!'.format(epsilon_decay))
 
     if total_observe_count < poor_observe:
