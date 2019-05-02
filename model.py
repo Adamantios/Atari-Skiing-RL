@@ -4,6 +4,29 @@ from keras.backend import cast
 from keras.optimizers import Optimizer
 
 
+def min_frame_dim_that_passes_net() -> int:
+    """
+    Calculates the minimum that each frame's dimension is required to have,
+    in order to pass through the network.
+
+    :return: the min frame dimension.
+    """
+    # (last conv size + filter loss) * first conv stride, or first conv size if it is bigger.
+    # ( 4 + 1 ) * 4 or 8
+    return 20
+
+
+def frame_can_pass_the_net(height, width) -> bool:
+    """
+    Returns if a frame can successfully pass through the network.
+
+    :param height: the frame's height.
+    :param width: the frame's width.
+    :return: bool.
+    """
+    return height >= min_frame_dim_that_passes_net() and width >= min_frame_dim_that_passes_net()
+
+
 def atari_skiing_model(shape: tuple, action_size: int, optimizer: Optimizer) -> Model:
     """
     Defines a Keras Model designed for the atari skiing game.
