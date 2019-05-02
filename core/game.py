@@ -9,16 +9,19 @@ from core.agent import DQN
 from utils.preprocessing import atari_preprocess
 from utils.scoring import Scorer
 
+GameInfo = [np.ndarray, float, bool]
+
 
 class Game(object):
     def __init__(self, episodes: int, render: bool, downsample_scale: int, scorer: Scorer, agent_frame_history: int,
-                 steps_per_action: int):
+                 steps_per_action: int, fit_frequency: int):
         self._episodes = episodes
         self._render = render
         self._downsample_scale = downsample_scale
         self._scorer = scorer
         self._agent_frame_history = agent_frame_history
         self._steps_per_action = steps_per_action
+        self._fit_frequency = fit_frequency
 
         # Create the skiing environment.
         self._env, self.pixel_rows, self.pixel_columns, self.action_space_size = self._create_skiing_environment()
@@ -49,7 +52,7 @@ class Game(object):
         if self._render:
             self._env.render()
 
-    def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> [float, np.ndarray]:
+    def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> GameInfo:
         """
         Takes game actions.
 
@@ -83,6 +86,46 @@ class Game(object):
 
         return next_state, reward, done
 
+    def _take_action(self, agent: DQN, current_state: np.ndarray) -> GameInfo:
+        """
+        Take action.
+
+        :param agent: the agent to take the action.
+        :param current_state: the current state.
+        :return: the next state, the reward and if game is done.
+        """
+        # Take an action, using the policy.
+        action = agent.take_action(current_state)
+        # Repeat the action.
+        next_state, reward, done = self._repeat_action(agent, current_state, action)
+
+        return next_state, reward, done
+
+    def _train_and_play(self, agent: DQN, current_state: np.ndarray, episode: int) -> GameInfo:
+        """
+        Train the agent while playing, using the current state.
+
+        :param agent: the agent to train.
+        :param current_state: the current state.
+        :param episode: the current episode.
+        :return: the next state, the reward and if game is done.
+        """
+        # Init variables.
+        reward, next_state, done = 0, current_state, False
+
+        # Repeat actions before fitting time.
+        for _ in range(self._fit_frequency):
+            next_state, reward, done = self._take_action(agent, current_state)
+            if done:
+                break
+
+        # Fit agent and keep fitting history.
+        fitting_history = agent.fit()
+        if fitting_history is not None:
+            self._scorer.huber_loss_history[episode - 1] += fitting_history.history['loss']
+
+        return next_state, reward, done
+
     def play_game(self, agent: DQN) -> Generator:
         """
         Starts the game loop and trains the agent.
@@ -93,7 +136,7 @@ class Game(object):
         # Run for a number of episodes.
         for episode in range(1, self._episodes + 1):
             # Init vars.
-            max_score, total_score, done = -inf, 0, False
+            reward, max_score, total_score, done = 0, -inf, 0, False
 
             # Reset and render the environment.
             current_state = self._env.reset()
@@ -113,16 +156,8 @@ class Game(object):
                                         self._agent_frame_history))
 
             while not done:
-                # Take an action, using the policy.
-                action = agent.take_action(current_state)
-                # Repeat the action.
-                current_state, reward, done = self._repeat_action(agent, current_state, action)
-
-                # Fit agent and keep fitting history.
-                fitting_history = agent.fit()
-                if fitting_history is not None:
-                    self._scorer.huber_loss_history[episode - 1] += fitting_history.history['loss']
-
+                # Train the agent while playing.
+                current_state, reward, done = self._train_and_play(agent, current_state, episode)
                 # Add reward to the total score.
                 total_score += reward
                 # Set max score.

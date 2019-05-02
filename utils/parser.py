@@ -15,6 +15,7 @@ SAVE_PLOT = True
 RENDER = True
 DOWNSAMPLE_SCALE = 2
 STEPS_PER_ACTION = 4
+FIT_FREQUENCY = 4
 EPISODES = int(1E4)
 EPSILON = 1.
 FINAL_EPSILON = .1
@@ -104,6 +105,8 @@ def create_parser() -> ArgumentParser:
                         help='The downsampling scale to be used (default %(default)s).')
     parser.add_argument('-s', '--steps', type=positive_int, default=STEPS_PER_ACTION, required=False,
                         help='The steps to skip per action (default %(default)s).')
+    parser.add_argument('-ff', '--fit_frequency', type=positive_int, default=FIT_FREQUENCY, required=False,
+                        help='The actions to take between an agent\'s fit (default %(default)s).')
     parser.add_argument('-e', '--episodes', type=positive_int, default=EPISODES, required=False,
                         help='The episodes to run the training procedure (default %(default)s).')
     parser.add_argument('-eps', '--epsilon', type=positive_float, default=EPSILON, required=False,
