@@ -150,7 +150,7 @@ if __name__ == '__main__':
     plots_name_prefix = args.plot_name
     render = not args.no_render
     downsample_scale = args.downsample
-    # TODO steps_per_action = args.steps
+    steps_per_action = args.steps
     # TODO add fit frequency.
     # TODO add maximum no operation at start argument.
     episodes = args.episodes
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     scorer = Scorer(episodes, info_interval_mean, results_name_prefix)
 
     # Create the game.
-    game = Game(episodes, render, downsample_scale, scorer, agent_frame_history)
+    game = Game(episodes, render, downsample_scale, scorer, agent_frame_history, steps_per_action)
 
     # Check arguments.
     run_checks()

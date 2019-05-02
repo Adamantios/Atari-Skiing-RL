@@ -11,12 +11,14 @@ from utils.scoring import Scorer
 
 
 class Game(object):
-    def __init__(self, episodes: int, render: bool, downsample_scale: int, scorer: Scorer, agent_frame_history: int):
+    def __init__(self, episodes: int, render: bool, downsample_scale: int, scorer: Scorer, agent_frame_history: int,
+                 steps_per_action: int):
         self._episodes = episodes
         self._render = render
         self._downsample_scale = downsample_scale
         self._scorer = scorer
         self._agent_frame_history = agent_frame_history
+        self._steps_per_action = steps_per_action
 
         # Create the skiing environment.
         self._env, self.pixel_rows, self.pixel_columns, self.action_space_size = self._create_skiing_environment()
@@ -46,6 +48,39 @@ class Game(object):
         """ Renders a frame, only if the user has chosen to do so. """
         if self._render:
             self._env.render()
+
+    def _take_actions(self, agent: DQN, current_state: np.ndarray) -> [float, np.ndarray]:
+        """
+        Takes game actions.
+
+        :param agent: the agent to take the actions.
+        :param current_state: the current state.
+        :return: the next state, the reward and if game is done.
+        """
+        # Init variables.
+        reward, next_state, done = 0, current_state, False
+
+        for _ in range(self._steps_per_action):
+            # Take an action, using the policy.
+            action = agent.take_action(current_state)
+            # Take a step, using the action.
+            next_state, reward, done, _ = self._env.step(action)
+
+            if done:
+                return next_state, reward, done
+
+            # Render the frame.
+            self._render_frame()
+
+            # Preprocess the state.
+            next_state = atari_preprocess(next_state, self._downsample_scale)
+            # Append the frame history.
+            next_state = np.append(next_state, current_state[:, :, :, :self._agent_frame_history - 1], axis=3)
+
+            # Save sample <s,a,r,s'> to the replay memory.
+            agent.append_to_memory(current_state, action, reward, next_state)
+
+        return next_state, reward, done
 
     def play_game(self, agent: DQN) -> Generator:
         """
@@ -77,20 +112,8 @@ class Game(object):
                                         self._agent_frame_history))
 
             while not done:
-                # Take an action, using the policy.
-                action = agent.take_action(current_state)
-                # Take a step, using the action.
-                next_state, reward, done, _ = self._env.step(action)
-                # Render the frame.
-                self._render_frame()
+                next_state, reward, done = self._take_actions(agent, current_state)
 
-                # Preprocess the state.
-                next_state = atari_preprocess(next_state, self._downsample_scale)
-                # Append the frame history.
-                next_state = np.append(next_state, current_state[:, :, :, :self._agent_frame_history - 1], axis=3)
-
-                # Save sample <s,a,r,s'> to the replay memory.
-                agent.append_to_memory(current_state, action, reward, next_state)
                 # Fit agent and keep fitting history.
                 fitting_history = agent.fit()
                 if fitting_history is not None:
