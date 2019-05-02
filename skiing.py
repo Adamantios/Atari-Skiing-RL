@@ -172,8 +172,8 @@ def game_loop() -> None:
         # Set current state with the stacked.
         current_state = np.reshape(current_state,
                                    (1,
-                                    pixel_rows // downsample_scale,
-                                    pixel_columns // downsample_scale,
+                                    ceil(pixel_rows / downsample_scale),
+                                    ceil(pixel_columns / downsample_scale),
                                     agent_frame_history))
 
         while not done:
@@ -234,13 +234,16 @@ if __name__ == '__main__':
     batch_size = args.batch
     gamma = args.gamma
 
-    # Check arguments.
-    run_checks()
-
     # Create the skiing environment.
     env, state, pixel_rows, pixel_columns, action_space_size = create_skiing_environment()
+
     # Create the observation space's shape.
-    observation_space_shape = (pixel_rows // downsample_scale, pixel_columns // downsample_scale, agent_frame_history)
+    observation_space_shape = (ceil(pixel_rows / downsample_scale),
+                               ceil(pixel_columns / downsample_scale),
+                               agent_frame_history)
+
+    # Check arguments.
+    run_checks()
 
     # Create the optimizer.
     optimizer = RMSprop(lr=0.00025, rho=0.95, epsilon=0.01)
