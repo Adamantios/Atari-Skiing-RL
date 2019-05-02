@@ -1,4 +1,5 @@
 from collections import Generator
+from random import randint
 
 import gym
 import numpy as np
@@ -14,7 +15,7 @@ GameInfo = [np.ndarray, float, bool]
 
 class Game(object):
     def __init__(self, episodes: int, render: bool, downsample_scale: int, scorer: Scorer, agent_frame_history: int,
-                 steps_per_action: int, fit_frequency: int):
+                 steps_per_action: int, fit_frequency: int, no_operation: int):
         self._episodes = episodes
         self._render = render
         self._downsample_scale = downsample_scale
@@ -22,6 +23,7 @@ class Game(object):
         self._agent_frame_history = agent_frame_history
         self._steps_per_action = steps_per_action
         self._fit_frequency = fit_frequency
+        self._no_operation = no_operation
 
         # Create the skiing environment.
         self._env, self.pixel_rows, self.pixel_columns, self.action_space_size = self._create_skiing_environment()
@@ -131,6 +133,28 @@ class Game(object):
 
         return next_state, reward, done
 
+    def _observe(self, init_state: np.ndarray) -> [np.ndarray, bool]:
+        """
+        Take no action.
+
+        :param init_state: the initial state.
+        :return: the next state and if game is done.
+        """
+        # Init variables.
+        observe, done = init_state, False
+
+        # Observe for a random number of steps picked from [1, self._no_operation].
+        for _ in range(randint(1, self._no_operation)):
+            # Take no action.
+            observe, _, done, _ = self._env.step(0)
+            # Render the frame.
+            self._render_frame()
+
+            if done:
+                break
+
+        return observe, done
+
     def play_game(self, agent: DQN) -> Generator:
         """
         Starts the game loop and trains the agent.
@@ -144,8 +168,11 @@ class Game(object):
             reward, max_score, total_score, done = 0, -inf, 0, False
 
             # Reset and render the environment.
-            current_state = self._env.reset()
+            init_state = self._env.reset()
             self._render_frame()
+
+            # Just observe.
+            current_state, done = self._observe(init_state)
 
             # Preprocess current_state.
             current_state = atari_preprocess(current_state, self._downsample_scale)

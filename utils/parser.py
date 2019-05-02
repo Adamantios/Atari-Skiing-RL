@@ -16,6 +16,7 @@ RENDER = True
 DOWNSAMPLE_SCALE = 2
 STEPS_PER_ACTION = 4
 FIT_FREQUENCY = 4
+NO_OPERATION = 30
 EPISODES = int(1E4)
 EPSILON = 1.
 FINAL_EPSILON = .1
@@ -107,6 +108,9 @@ def create_parser() -> ArgumentParser:
                         help='The steps to skip per action (default %(default)s).')
     parser.add_argument('-ff', '--fit_frequency', type=positive_int, default=FIT_FREQUENCY, required=False,
                         help='The actions to take between an agent\'s fit (default %(default)s).')
+    parser.add_argument('-no', '--no_operation', type=positive_int, default=NO_OPERATION, required=False,
+                        help='The maximum number of no operation steps at the beginning of the game '
+                             '(default %(default)s).')
     parser.add_argument('-e', '--episodes', type=positive_int, default=EPISODES, required=False,
                         help='The episodes to run the training procedure (default %(default)s).')
     parser.add_argument('-eps', '--epsilon', type=positive_float, default=EPSILON, required=False,
