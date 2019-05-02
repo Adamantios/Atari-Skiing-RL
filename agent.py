@@ -7,6 +7,7 @@ from zipfile import ZipFile
 
 import numpy as np
 from keras import Model
+from keras.callbacks import History
 from keras.engine.saving import load_model
 from keras.models import clone_model
 from keras.utils import to_categorical
@@ -102,8 +103,12 @@ class DQN(object):
 
         return current_state_batch, actions, rewards, next_state_batch
 
-    def fit(self) -> None:
-        """ Fits the agent. """
+    def fit(self) -> History:
+        """
+        Fits the agent.
+
+        :return: the fit history.
+        """
         # Fit only if the agent is not observing.
         if not self.policy.observing:
             # Increase the steps from update indicator.
@@ -129,14 +134,16 @@ class DQN(object):
             one_hot_target_q_values = one_hot_actions * np.expand_dims(target_q_values, 1)
 
             # Fit the model to the batches.
-            self.model.fit([current_state_batch, one_hot_actions],
-                           one_hot_target_q_values, epochs=1, batch_size=self.batch_size, verbose=0)
+            history = self.model.fit([current_state_batch, one_hot_actions],
+                                     one_hot_target_q_values, epochs=1, batch_size=self.batch_size, verbose=0)
 
             # Update the target model if necessary.
             if self.steps_from_update == self.target_model_change or self.target_model_change < 1:
                 print('Updating target model.')
                 self.update_target_model()
                 print('Target model has been successfully updated.')
+
+            return history
 
     def take_action(self, current_state: np.ndarray) -> int:
         """

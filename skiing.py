@@ -183,29 +183,43 @@ def show_mean_scoring(episode: int) -> None:
               .format(episode - info_interval_mean, episode, mean_total_score))
 
 
-def plot_scores_vs_episodes(episode: int) -> None:
-    """
-    Plots scores vs episodes.
+def plot_scores_vs_episodes() -> None:
+    """ Plots scores vs episodes. """
+    fig = plt.figure(figsize=(12, 10))
+    # Start from 1, not 0.
+    plt.xlim(1, episodes)
+    plt.plot(np.append(np.roll(max_scores, 1), max_scores[episodes - 1]))
+    plt.plot(np.append(np.roll(total_scores, 1), total_scores[episodes - 1]))
+    plt.xticks(range(1, episodes + 1))
+    plt.title('Scores vs Episodes', fontsize='x-large')
+    plt.xlabel('Episode', fontsize='large')
+    plt.ylabel('Score', fontsize='large')
+    plt.legend(['Max Score', 'Total Score'], loc='upper left', fontsize='large')
 
-    :param episode: the current episode.
-    """
-    if plot_train_results and episode == episodes and episodes > 1:
-        fig = plt.figure(figsize=(12, 10))
-        # Start from 1, not 0.
-        plt.xlim(1, episodes)
-        plt.plot(np.append(np.roll(max_scores, 1), max_scores[episodes - 1]))
-        plt.plot(np.append(np.roll(total_scores, 1), total_scores[episodes - 1]))
-        plt.xticks(range(1, episodes + 1))
-        plt.title('Scores vs Episodes', fontsize='x-large')
-        plt.xlabel('Episode', fontsize='large')
-        plt.ylabel('Score', fontsize='large')
-        plt.legend(['Max Score', 'Total Score'], loc='upper left', fontsize='large')
-        fig.savefig(plot_name)
+    if plot_train_results:
+        plt.show()
 
-        if save_plot:
-            plt.show()
+    if save_plot:
+        fig.savefig(plot_name + '_scores_vs_episodes.png')
 
-        # TODO plot mean huber error per episode vs episodes.
+
+def plot_loss_vs_episodes() -> None:
+    """ Plots huber loss vs episodes. """
+    fig = plt.figure(figsize=(12, 10))
+    # Start from 1, not 0.
+    plt.xlim(1, episodes)
+    plt.plot(np.append(np.roll(huber_loss_history, 1), huber_loss_history[episodes - 1]))
+    plt.xticks(range(1, episodes + 1))
+    plt.title('Total Huber loss vs episodes', fontsize='x-large')
+    plt.xlabel('Episode', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.legend(['train', 'test'], loc='upper left', fontsize='large')
+
+    if plot_train_results:
+        plt.show()
+
+    if save_plot:
+        fig.savefig(plot_name + '_loss_vs_episodes.png')
 
 
 def end_of_episode_actions(episode: int) -> None:
@@ -219,7 +233,9 @@ def end_of_episode_actions(episode: int) -> None:
     save_agent(episode)
     show_episode_scoring(episode)
     show_mean_scoring(episode)
-    plot_scores_vs_episodes(episode)
+    if episode == episodes and episodes > 1:
+        plot_scores_vs_episodes()
+        plot_loss_vs_episodes()
 
 
 def game_loop() -> None:
@@ -261,8 +277,10 @@ def game_loop() -> None:
 
             # Save sample <s,a,r,s'> to the replay memory.
             agent.append_to_memory(current_state, action, reward, next_state)
-            # Fit agent.
-            agent.fit()
+            # Fit agent and keep fitting history.
+            fitting_history = agent.fit()
+            if fitting_history is not None:
+                huber_loss_history[episode - 1] += fitting_history.history['loss']
 
             # Add reward to the total score.
             total_score += reward
@@ -331,9 +349,10 @@ if __name__ == '__main__':
     # Create the agent.
     agent = create_agent()
 
-    # Initialize arrays for the scores.
+    # Initialize arrays for the scores and history.
     max_scores = np.empty(episodes)
     total_scores = np.empty(episodes)
+    huber_loss_history = np.zeros(episodes)
 
     # Start the game loop.
     game_loop()
