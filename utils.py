@@ -174,19 +174,19 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-opt', '--optimizer', type=str.lower, default=optimizer_name, required=False,
                         choices=optimizer_choices,
                         help='The optimizer to be used. (default %(default)s).')
-    parser.add_argument('-lr', '--learning_rate', type=float, default=learning_rate, required=False,
+    parser.add_argument('-lr', '--learning_rate', type=positive_float, default=learning_rate, required=False,
                         help='The learning rate for the optimizer (default %(default)s).')
-    parser.add_argument('-lrd', '--learning_rate_decay', type=float, default=lr_decay, required=False,
+    parser.add_argument('-lrd', '--learning_rate_decay', type=positive_float, default=lr_decay, required=False,
                         help='The learning rate decay for the optimizer (default %(default)s).')
-    parser.add_argument('-b1', '--beta1', type=float, default=beta1, required=False,
+    parser.add_argument('-b1', '--beta1', type=positive_float, default=beta1, required=False,
                         help='The beta 1 for the optimizer (default %(default)s).')
-    parser.add_argument('-b2', '--beta2', type=float, default=beta2, required=False,
+    parser.add_argument('-b2', '--beta2', type=positive_float, default=beta2, required=False,
                         help='The beta 2 for the optimizer (default %(default)s).')
-    parser.add_argument('-rho', type=int, default=rho, required=False,
+    parser.add_argument('-rho', type=positive_float, default=rho, required=False,
                         help='The rho for the optimizer (default %(default)s).')
-    parser.add_argument('-f', '--fuzz', type=float, default=fuzz, required=False,
+    parser.add_argument('-f', '--fuzz', type=positive_float, default=fuzz, required=False,
                         help='The fuzz factor for the rmsprop optimizer (default %(default)s).')
-    parser.add_argument('-m', '--momentum', type=float, default=momentum, required=False,
+    parser.add_argument('-m', '--momentum', type=positive_float, default=momentum, required=False,
                         help='The momentum for the optimizer (default %(default)s).')
 
     return parser
