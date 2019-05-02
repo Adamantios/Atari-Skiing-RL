@@ -86,6 +86,15 @@ def create_parser() -> ArgumentParser:
     replay_memory_size = int(4e5)
     batch_size = 32
     gamma = .99
+    optimizer_name = 'rmsprop'
+    optimizer_choices = 'adam', 'rmsprop', 'sgd', 'adagrad', 'adadelta', 'adamax'
+    learning_rate = float(25e-5)
+    lr_decay = float(1e-6)
+    beta1 = .9
+    beta2 = .999
+    rho = .95
+    fuzz = .01
+    momentum = .1
 
     def positive_int(value: any) -> int:
         """
@@ -117,7 +126,7 @@ def create_parser() -> ArgumentParser:
 
     parser = ArgumentParser(description='Trains a DQN agent to play the Atari Skiing game.')
 
-    parser.add_argument('-f', '--filename', type=str, required=False, default=filename_prefix,
+    parser.add_argument('-fp', '--filename_prefix', type=str, required=False, default=filename_prefix,
                         help='Filename prefix for the trained model to be saved (default %(default)s).')
     parser.add_argument('-si', '--save_interval', type=positive_int, default=save_interval, required=False,
                         help='The save interval for the trained model (default %(default)s), in episodes.')
@@ -162,5 +171,22 @@ def create_parser() -> ArgumentParser:
                              '(default %(default)s).')
     parser.add_argument('-g', '--gamma', type=positive_float, default=gamma, required=False,
                         help='The discount factor (default %(default)s).')
+    parser.add_argument('-opt', '--optimizer', type=str.lower, default=optimizer_name, required=False,
+                        choices=optimizer_choices,
+                        help='The optimizer to be used. (default %(default)s).')
+    parser.add_argument('-lr', '--learning_rate', type=float, default=learning_rate, required=False,
+                        help='The learning rate for the optimizer (default %(default)s).')
+    parser.add_argument('-lrd', '--learning_rate_decay', type=float, default=lr_decay, required=False,
+                        help='The learning rate decay for the optimizer (default %(default)s).')
+    parser.add_argument('-b1', '--beta1', type=float, default=beta1, required=False,
+                        help='The beta 1 for the optimizer (default %(default)s).')
+    parser.add_argument('-b2', '--beta2', type=float, default=beta2, required=False,
+                        help='The beta 2 for the optimizer (default %(default)s).')
+    parser.add_argument('-rho', type=int, default=rho, required=False,
+                        help='The rho for the optimizer (default %(default)s).')
+    parser.add_argument('-f', '--fuzz', type=float, default=fuzz, required=False,
+                        help='The fuzz factor for the rmsprop optimizer (default %(default)s).')
+    parser.add_argument('-m', '--momentum', type=float, default=momentum, required=False,
+                        help='The momentum for the optimizer (default %(default)s).')
 
     return parser

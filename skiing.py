@@ -1,10 +1,11 @@
 from os import path
+from typing import Union
 from warnings import warn
 
 import gym
 from collections import deque
 import numpy as np
-from keras.optimizers import RMSprop
+from keras.optimizers import adam, rmsprop, sgd, adagrad, adadelta, adamax
 from math import inf, ceil
 
 from agent import EGreedyPolicy, DQN
@@ -87,6 +88,28 @@ def create_skiing_environment():
     act_space_size = environment.action_space.n
 
     return environment, init_state, height, width, act_space_size
+
+
+def initialize_optimizer() -> Union[adam, rmsprop, sgd, adagrad, adadelta, adamax]:
+    """
+    Initializes an optimizer based on the user's choices.
+
+    :return: the optimizer.
+    """
+    if optimizer_name == 'adam':
+        return adam(lr=learning_rate, beta_1=beta1, beta_2=beta2, decay=lr_decay)
+    elif optimizer_name == 'rmsprop':
+        return rmsprop(lr=learning_rate, rho=rho, epsilon=fuzz)
+    elif optimizer_name == 'sgd':
+        return sgd(lr=learning_rate, momentum=momentum, decay=lr_decay)
+    elif optimizer_name == 'adagrad':
+        return adagrad(lr=learning_rate, decay=lr_decay)
+    elif optimizer_name == 'adadelta':
+        return adadelta(lr=learning_rate, rho=rho, decay=lr_decay)
+    elif optimizer_name == 'adamax':
+        return adamax(lr=learning_rate, beta_1=beta1, beta_2=beta2, decay=lr_decay)
+    else:
+        raise ValueError('An unexpected optimizer name has been encountered.')
 
 
 def create_agent() -> DQN:
@@ -259,7 +282,7 @@ def game_loop() -> None:
 if __name__ == '__main__':
     # Get arguments.
     args = create_parser().parse_args()
-    filename_prefix = args.filename
+    filename_prefix = args.filename_prefix
     save_interval = args.save_interval
     info_interval_current = args.info_interval_current
     info_interval_mean = args.info_interval_mean
@@ -282,6 +305,14 @@ if __name__ == '__main__':
     replay_memory_size = args.replay_memory
     batch_size = args.batch
     gamma = args.gamma
+    optimizer_name = args.optimizer
+    learning_rate = args.learning_rate
+    lr_decay = args.learning_rate_decay
+    beta1 = args.beta1
+    beta2 = args.beta2
+    rho = args.rho
+    fuzz = args.fuzz
+    momentum = args.momentum
 
     # Create the skiing environment.
     env, state, pixel_rows, pixel_columns, action_space_size = create_skiing_environment()
@@ -295,8 +326,7 @@ if __name__ == '__main__':
     run_checks()
 
     # Create the optimizer.
-    # TODO make it argument.
-    optimizer = RMSprop(lr=0.00025, rho=0.95, epsilon=0.01)
+    optimizer = initialize_optimizer()
 
     # Create the agent.
     agent = create_agent()
