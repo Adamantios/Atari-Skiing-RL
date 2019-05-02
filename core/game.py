@@ -71,7 +71,7 @@ class Game(object):
             self._render_frame()
 
             if done:
-                return next_state, reward, done
+                break
 
             # Preprocess the state.
             next_state = atari_preprocess(next_state, self._downsample_scale)
