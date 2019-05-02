@@ -23,41 +23,22 @@ class Plotter(object):
         if self.save_plot:
             fig.savefig(filename)
 
-    def plot_scores_vs_episodes(self, max_scores: np.ndarray, total_scores: np.ndarray) -> None:
+    def plot_score_vs_episodes(self, score: np.ndarray, title: str, filename_suffix: str) -> None:
         """
-        Plots scores vs episodes.
+        Plots a score array vs episodes.
 
-        :param max_scores: the max scores array.
-        :param total_scores: the total scores array.
+        :param score: the array with the scores.
+        :param title: the plot's title.
+        :param filename_suffix: the saved plot's filename suffix.
         """
         if self.plot_train_results or self.save_plot:
             fig = plt.figure(figsize=(12, 10))
             # Start from 1, not 0.
             plt.xlim(1, self.episodes)
-            plt.plot(np.append(np.roll(max_scores, 1), max_scores[self.episodes - 1]))
-            plt.plot(np.append(np.roll(total_scores, 1), total_scores[self.episodes - 1]))
+            plt.plot(np.append(np.roll(score, 1), score[self.episodes - 1]))
             plt.xticks(range(1, self.episodes + 1))
-            plt.title('Scores vs Episodes', fontsize='x-large')
+            plt.title(title, fontsize='x-large')
             plt.xlabel('Episode', fontsize='large')
             plt.ylabel('Score', fontsize='large')
-            plt.legend(['Max Score', 'Total Score'], loc='upper left', fontsize='large')
 
-            self._plot_and_save(fig, self.plots_name_prefix + '_scores_vs_episodes.png')
-
-    def plot_loss_vs_episodes(self, huber_loss_history: np.ndarray) -> None:
-        """
-        Plots huber loss vs episodes.
-
-        :param huber_loss_history: the huber loss history array.
-        """
-        if self.plot_train_results or self.save_plot:
-            fig = plt.figure(figsize=(12, 10))
-            # Start from 1, not 0.
-            plt.xlim(1, self.episodes)
-            plt.plot(np.append(np.roll(huber_loss_history, 1), huber_loss_history[self.episodes - 1]))
-            plt.xticks(range(1, self.episodes + 1))
-            plt.title('Total Huber loss vs episodes', fontsize='x-large')
-            plt.xlabel('Episode', fontsize='large')
-            plt.ylabel('Loss', fontsize='large')
-
-            self._plot_and_save(fig, self.plots_name_prefix + '_loss_vs_episodes.png')
+            self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)

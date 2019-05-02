@@ -130,8 +130,13 @@ def end_of_episode_actions(episode: int) -> None:
         scorer.show_mean_scoring(episode)
 
     if episode == episodes and episodes > 1:
-        plotter.plot_scores_vs_episodes(scorer.max_scores, scorer.total_scores)
-        plotter.plot_loss_vs_episodes(scorer.huber_loss_history)
+        # Max score.
+        plotter.plot_score_vs_episodes(scorer.max_scores, 'Max Score vs Episodes', '_max_scores_vs_episodes.png')
+        # Total score.
+        plotter.plot_score_vs_episodes(scorer.total_scores, 'Total Score vs Episodes', '_total_scores_vs_episodes.png')
+        # Huber loss.
+        plotter.plot_score_vs_episodes(scorer.huber_loss_history,
+                                       'Total Huber loss vs episodes', '_loss_vs_episodes.png')
 
     if results_save_interval > 0 and (episodes % results_save_interval == 0 or results_save_interval == 1):
         scorer.save_results(episode)
