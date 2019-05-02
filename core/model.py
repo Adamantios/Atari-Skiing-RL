@@ -1,5 +1,4 @@
 from typing import Union
-
 from keras import Input, Model
 from keras.layers import Lambda, Conv2D, Flatten, Dense, Multiply
 from keras.backend import cast
