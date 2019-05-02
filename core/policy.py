@@ -1,5 +1,6 @@
-import numpy as np
 from random import randrange
+
+import numpy as np
 from keras import Model
 
 

@@ -1,6 +1,7 @@
+from collections import deque
 from os import path
 from warnings import warn
-from collections import deque
+
 from core.agent import DQN
 from core.game import Game
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \

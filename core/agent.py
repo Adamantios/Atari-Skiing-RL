@@ -1,10 +1,11 @@
 import pickle
-import numpy as np
 from collections import deque
 from os import remove
 from os.path import basename, splitext, dirname, join
 from random import sample
 from zipfile import ZipFile
+
+import numpy as np
 from keras import Model
 from keras.callbacks import History
 from keras.engine.saving import load_model

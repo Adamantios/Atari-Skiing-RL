@@ -1,8 +1,10 @@
+from collections import Generator
+
 import gym
 import numpy as np
-from collections import Generator
 from gym.wrappers import TimeLimit
 from math import inf, ceil
+
 from core.agent import DQN
 from utils.preprocessing import atari_preprocess
 from utils.scoring import Scorer
