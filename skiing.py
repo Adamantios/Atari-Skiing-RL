@@ -1,4 +1,3 @@
-import pickle
 from os import path
 from typing import Union
 from warnings import warn
@@ -9,10 +8,14 @@ import numpy as np
 from keras.optimizers import adam, rmsprop, sgd, adagrad, adadelta, adamax
 from math import inf, ceil
 
-from agent import EGreedyPolicy, DQN
-from model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net
-from utils import create_path, atari_preprocess, create_parser
-import matplotlib.pyplot as plt
+from core.agent import EGreedyPolicy, DQN
+from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net
+
+from utils.os_operations import create_path
+from utils.parser import create_parser
+from utils.plotting import Plotter
+from utils.preprocessing import atari_preprocess
+from utils.scoring import Scorer
 
 
 def run_checks() -> None:
@@ -156,101 +159,6 @@ def save_agent(episode: int) -> None:
         print('Agent has been successfully saved as {}.'.format(filename))
 
 
-def show_episode_scoring(episode: int) -> None:
-    """
-    Shows an episode's scoring information.
-
-    :param episode: the episode for which the actions will be taken.
-    """
-    if episode % info_interval_current == 0 or info_interval_current == 1:
-        # Print the episode's scores.
-        print("Max score for the episode {} is: {} ".format(episode, max_scores[episode - 1]))
-        print("Total score for the episode {} is: {} ".format(episode, total_scores[episode - 1]))
-
-
-def show_mean_scoring(episode: int) -> None:
-    """
-    Shows the mean scoring information for the current episode.
-
-    :param episode: the episode.
-    """
-    if info_interval_mean > 1 and episode % info_interval_mean == 0:
-        # Print the episodes mean scores.
-        mean_max_score = max_scores[episode - info_interval_mean:episode].sum() / info_interval_mean
-        mean_total_score = total_scores[episode - info_interval_mean:episode].sum() / info_interval_mean
-
-        print("Mean Max score for {}-{} episodes is: {} "
-              .format(episode - info_interval_mean, episode, mean_max_score))
-        print("Mean Total score for {}-{} episodes is: {} "
-              .format(episode - info_interval_mean, episode, mean_total_score))
-
-
-def plot_scores_vs_episodes() -> None:
-    """ Plots scores vs episodes. """
-    fig = plt.figure(figsize=(12, 10))
-    # Start from 1, not 0.
-    plt.xlim(1, episodes)
-    plt.plot(np.append(np.roll(max_scores, 1), max_scores[episodes - 1]))
-    plt.plot(np.append(np.roll(total_scores, 1), total_scores[episodes - 1]))
-    plt.xticks(range(1, episodes + 1))
-    plt.title('Scores vs Episodes', fontsize='x-large')
-    plt.xlabel('Episode', fontsize='large')
-    plt.ylabel('Score', fontsize='large')
-    plt.legend(['Max Score', 'Total Score'], loc='upper left', fontsize='large')
-
-    if plot_train_results:
-        plt.show()
-
-    if save_plot:
-        fig.savefig(plots_name_prefix + '_scores_vs_episodes.png')
-
-
-def plot_loss_vs_episodes() -> None:
-    """ Plots huber loss vs episodes. """
-    fig = plt.figure(figsize=(12, 10))
-    # Start from 1, not 0.
-    plt.xlim(1, episodes)
-    plt.plot(np.append(np.roll(huber_loss_history, 1), huber_loss_history[episodes - 1]))
-    plt.xticks(range(1, episodes + 1))
-    plt.title('Total Huber loss vs episodes', fontsize='x-large')
-    plt.xlabel('Episode', fontsize='large')
-    plt.ylabel('Loss', fontsize='large')
-    plt.legend(['train', 'test'], loc='upper left', fontsize='large')
-
-    if plot_train_results:
-        plt.show()
-
-    if save_plot:
-        fig.savefig(plots_name_prefix + '_loss_vs_episodes.png')
-
-
-def save_results(episode: int) -> None:
-    """
-    Saves the results in files.
-
-    :param episode: the current episode.
-    """
-    if results_save_interval > 0 and (episodes % results_save_interval == 0 or results_save_interval == 1):
-        print('Saving results.')
-
-        # Save total scores.
-        with open('{}_total_scores_episode{}'.format(results_name_prefix, episode), 'wb') as stream:
-            pickle.dump(total_scores, stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
-
-        # Save max scores.
-        with open('{}_max_scores_episode{}'.format(results_name_prefix, episode), 'wb') as stream:
-            pickle.dump(max_scores, stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
-
-        # Save losses.
-        with open('{}_losses_episode{}'.format(results_name_prefix, episode), 'wb') as stream:
-            pickle.dump(huber_loss_history, stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
-
-        print('Results have been saved successfully.')
-
-
 def end_of_episode_actions(episode: int) -> None:
     """
     Take actions after the episode finishes.
@@ -260,12 +168,19 @@ def end_of_episode_actions(episode: int) -> None:
     :param episode: the episode for which the actions will be taken.
     """
     save_agent(episode)
-    show_episode_scoring(episode)
-    show_mean_scoring(episode)
+
+    if episode % info_interval_current == 0 or info_interval_current == 1:
+        scorer.show_episode_scoring(episode)
+
+    if info_interval_mean > 1 and episode % info_interval_mean == 0:
+        scorer.show_mean_scoring(episode)
+
     if episode == episodes and episodes > 1:
-        plot_scores_vs_episodes()
-        plot_loss_vs_episodes()
-    save_results(episode)
+        plotter.plot_scores_vs_episodes(scorer.max_scores, scorer.total_scores)
+        plotter.plot_loss_vs_episodes(scorer.huber_loss_history)
+
+    if results_save_interval > 0 and (episodes % results_save_interval == 0 or results_save_interval == 1):
+        scorer.save_results(episode)
 
 
 def game_loop() -> None:
@@ -310,7 +225,7 @@ def game_loop() -> None:
             # Fit agent and keep fitting history.
             fitting_history = agent.fit()
             if fitting_history is not None:
-                huber_loss_history[episode - 1] += fitting_history.history['loss']
+                scorer.huber_loss_history[episode - 1] += fitting_history.history['loss']
 
             # Add reward to the total score.
             total_score += reward
@@ -320,8 +235,8 @@ def game_loop() -> None:
             max_score = max(max_score, reward)
 
         # Add scores to the scores arrays.
-        max_scores[episode - 1] = max_score
-        total_scores[episode - 1] = total_score
+        scorer.max_scores[episode - 1] = max_score
+        scorer.total_scores[episode - 1] = total_score
 
         # Take end of episode specific actions.
         end_of_episode_actions(episode)
@@ -381,10 +296,11 @@ if __name__ == '__main__':
     # Create the agent.
     agent = create_agent()
 
-    # Initialize arrays for the scores and history.
-    max_scores = np.empty(episodes)
-    total_scores = np.empty(episodes)
-    huber_loss_history = np.zeros(episodes)
+    # Create a scorer.
+    scorer = Scorer(episodes, info_interval_mean, results_name_prefix)
+
+    # Create a plotter.
+    plotter = Plotter(episodes, plots_name_prefix, plot_train_results, save_plot)
 
     # Start the game loop.
     game_loop()
