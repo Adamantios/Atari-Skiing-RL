@@ -1,0 +1,4 @@
+matplotlib
+gym
+keras
+numpy
