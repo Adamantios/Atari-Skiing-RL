@@ -96,14 +96,15 @@ class DQN(object):
 
             return history
 
-    def take_action(self, current_state: np.ndarray) -> int:
+    def take_action(self, current_state: np.ndarray, episode: int) -> int:
         """
         Takes an action based on the policy.
 
         :param current_state: the state for which the action will be taken.
+        :param episode: the current episode.
         :return: the action number.
         """
-        return self.policy.take_action(self.model, current_state)
+        return self.policy.take_action(self.model, current_state, episode)
 
     def update_target_model(self) -> None:
         """ Updates the target model. """

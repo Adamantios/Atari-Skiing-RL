@@ -22,24 +22,30 @@ class EGreedyPolicy(object):
             if self.e < self.final_e:
                 self.e = self.final_e
 
-    def _update_steps(self) -> None:
-        """ Updates the number of steps and sets the observing value if needed. """
+    def _update_steps(self, episode: int) -> None:
+        """
+        Updates the number of steps and sets the observing value if needed.
+
+        :param episode: the current episode.
+        """
         if self.steps_taken < self.total_observe_count:
             self.steps_taken += 1
             if self.total_observe_count == self.steps_taken:
                 self.observing = False
-                print('Agent has stopped observing.\nThings are about to get serious!\nOr not...')
+                print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
+                      .format(episode))
 
-    def take_action(self, model: Model, current_state: np.ndarray) -> int:
+    def take_action(self, model: Model, current_state: np.ndarray, episode: int) -> int:
         """
         Takes an action based on the policy.
 
         :param model: the model to use.
         :param current_state: the state for which the action will be taken.
+        :param episode: the current episode.
         :return: the action number.
         """
         # Update steps.
-        self._update_steps()
+        self._update_steps(episode)
 
         if np.random.rand() <= self.e or self.observing:
             # Take random action.

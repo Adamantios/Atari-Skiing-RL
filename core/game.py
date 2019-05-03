@@ -90,16 +90,17 @@ class Game(object):
 
         return next_state, reward, done
 
-    def _take_action(self, agent: DQN, current_state: np.ndarray) -> GameInfo:
+    def _take_action(self, agent: DQN, current_state: np.ndarray, episode: int) -> GameInfo:
         """
         Takes an action.
 
         :param agent: the agent to take the action.
         :param current_state: the current state.
+        :param episode: the current episode.
         :return: the next state, the reward and if game is done.
         """
         # Take an action, using the policy.
-        action = agent.take_action(current_state)
+        action = agent.take_action(current_state, episode)
         # Repeat the action.
         next_state, reward, done = self._repeat_action(agent, current_state, action)
 
@@ -120,7 +121,7 @@ class Game(object):
         # Repeat actions before fitting time.
         for _ in range(self._fit_frequency):
             # Take an action.
-            next_state, new_reward, done = self._take_action(agent, current_state)
+            next_state, new_reward, done = self._take_action(agent, current_state, episode)
             # Add reward.
             reward += new_reward
             if done:
