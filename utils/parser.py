@@ -95,13 +95,13 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-ah', '--agent_history', type=positive_int, required=False, default=AGENT_HISTORY,
                         help='The agent\'s frame history (default %(default)s).')
     parser.add_argument('-np', '--no_plot', default=not PLOT_TRAIN_RESULTS, required=False, action='store_false',
-                        help='Whether the train results should not be plot (default %(default)s).')
+                        help='Whether the train results should not be plot.')
     parser.add_argument('-nsp', '--no_save_plot', default=not SAVE_PLOT, required=False, action='store_false',
-                        help='Whether the train results should not be saved (default %(default)s).')
+                        help='Whether the train results should not be saved.')
     parser.add_argument('-p', '--plot_name', type=str, required=False, default=PLOT_NAME_PREFIX,
                         help='Filename prefix for the plots to be saved (default %(default)s).')
     parser.add_argument('-nr', '--no_render', default=not RENDER, required=False, action='store_false',
-                        help='Whether the environment should not be rendered (default %(default)s).')
+                        help='Whether the environment should not be rendered.')
     parser.add_argument('-d', '--downsample', type=positive_int, default=DOWNSAMPLE_SCALE, required=False,
                         help='The downsampling scale to be used (default %(default)s).')
     parser.add_argument('-s', '--steps', type=positive_int, default=STEPS_PER_ACTION, required=False,
