@@ -7,7 +7,7 @@ from core.game import Game
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
-from utils.os_operations import create_path
+from utils.os_operations import create_path, print_progressbar
 from utils.parser import create_parser
 from utils.plotting import Plotter
 from utils.scoring import Scorer
@@ -121,14 +121,29 @@ def end_of_episode_actions(episode: int) -> None:
 
     :param episode: the episode for which the actions will be taken.
     """
+    # Show progressbar.
+    if not info_interval_current == 1:
+        print_progressbar(finished_episode % info_interval_current, info_interval_current,
+                          'Episode: {}/{}'.format(finished_episode % info_interval_current, info_interval_current),
+                          'Finished: {}/{}'.format(finished_episode, episodes))
+
+    # Reinitialize progressbar if it just finished, but the game did not.
+    if finished_episode % info_interval_current == 0 and finished_episode != episodes:
+        print_progressbar(0, info_interval_current,
+                          'Episode: 0/{}'.format(info_interval_current),
+                          'Finished: 0/{}'.format(episodes))
+
+    # Save agent.
     save_agent(episode)
 
+    # Show scores.
     if episode % info_interval_current == 0 or info_interval_current == 1:
         scorer.show_episode_scoring(episode)
 
     if info_interval_mean > 1 and episode % info_interval_mean == 0:
         scorer.show_mean_scoring(episode)
 
+    # Plot scores.
     if episode == episodes and episodes > 1:
         # Max score.
         plotter.plot_score_vs_episodes(scorer.max_scores, 'Max Score vs Episodes', '_max_scores_vs_episodes.png')
@@ -138,6 +153,7 @@ def end_of_episode_actions(episode: int) -> None:
         plotter.plot_score_vs_episodes(scorer.huber_loss_history,
                                        'Total Huber loss vs episodes', '_loss_vs_episodes.png')
 
+    # Save results.
     if results_save_interval > 0 and (episode % results_save_interval == 0 or results_save_interval == 1):
         scorer.save_results(episode)
 
@@ -197,6 +213,11 @@ if __name__ == '__main__':
 
     # Create a plotter.
     plotter = Plotter(episodes, plots_name_prefix, plot_train_results, save_plot)
+
+    # Initialize progressbar.
+    print_progressbar(0, info_interval_current,
+                      'Episode: 0/{}'.format(info_interval_current),
+                      'Finished: 0/{}'.format(episodes))
 
     # Start the game loop.
     for finished_episode in game.play_game(agent):
