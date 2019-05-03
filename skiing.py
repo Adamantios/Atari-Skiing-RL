@@ -138,7 +138,7 @@ def end_of_episode_actions(episode: int) -> None:
         plotter.plot_score_vs_episodes(scorer.huber_loss_history,
                                        'Total Huber loss vs episodes', '_loss_vs_episodes.png')
 
-    if results_save_interval > 0 and (episodes % results_save_interval == 0 or results_save_interval == 1):
+    if results_save_interval > 0 and (episode % results_save_interval == 0 or results_save_interval == 1):
         scorer.save_results(episode)
 
 
