@@ -31,23 +31,28 @@ _GameInfo = [np.ndarray, float, bool]
 
 class Game(object):
     def __init__(self, episodes: int, render: bool, downsample_scale: int, scorer: Scorer, agent_frame_history: int,
-                 steps_per_action: int, fit_frequency: int, no_operation: int):
-        self._episodes = episodes
-        self._render = render
-        self._downsample_scale = downsample_scale
-        self._scorer = scorer
-        self._agent_frame_history = agent_frame_history
-        self._steps_per_action = steps_per_action
-        self._fit_frequency = fit_frequency
-        self._no_operation = no_operation
+                 steps_per_action: int, fit_frequency: int, no_operation: int, specs: GameResultSpecs):
+        self.episodes = episodes
+        self.render = render
+        self.downsample_scale = downsample_scale
+        self.scorer = scorer
+        self.agent_frame_history = agent_frame_history
+        self.steps_per_action = steps_per_action
+        self.fit_frequency = fit_frequency
+        self.no_operation = no_operation
+        self.specs = specs
 
         # Create the skiing environment.
         self._env, self.pixel_rows, self.pixel_columns, self.action_space_size = self._create_skiing_environment()
 
         # Create the observation space's shape.
-        self.observation_space_shape = (ceil(self.pixel_rows / self._downsample_scale),
-                                        ceil(self.pixel_columns / self._downsample_scale),
-                                        self._agent_frame_history)
+        self.observation_space_shape = (ceil(self.pixel_rows / self.downsample_scale),
+                                        ceil(self.pixel_columns / self.downsample_scale),
+                                        self.agent_frame_history)
+
+        # Create a plotter.
+        self.plotter = Plotter(self.episodes, self.specs.plots_name_prefix, self.specs.plot_train_results,
+                               self.specs.save_plots)
 
     @staticmethod
     def _create_skiing_environment() -> [TimeLimit, int, int, int]:
@@ -67,7 +72,7 @@ class Game(object):
 
     def _render_frame(self) -> None:
         """ Renders a frame, only if the user has chosen to do so. """
-        if self._render:
+        if self.render:
             self._env.render()
 
     def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> _GameInfo:
@@ -82,7 +87,7 @@ class Game(object):
         # Init variables.
         reward, next_state, done = 0, current_state, False
 
-        for _ in range(self._steps_per_action):
+        for _ in range(self.steps_per_action):
             # Take a step, using the action.
             next_state, new_reward, done, _ = self._env.step(action)
             # Render the frame.
@@ -94,9 +99,9 @@ class Game(object):
                 break
 
             # Preprocess the state.
-            next_state = atari_preprocess(next_state, self._downsample_scale)
+            next_state = atari_preprocess(next_state, self.downsample_scale)
             # Append the frame history.
-            next_state = np.append(next_state, current_state[:, :, :, :self._agent_frame_history - 1], axis=3)
+            next_state = np.append(next_state, current_state[:, :, :, :self.agent_frame_history - 1], axis=3)
 
             # Save sample <s,a,r,s'> to the replay memory.
             agent.append_to_memory(current_state, action, reward, next_state)
@@ -135,7 +140,7 @@ class Game(object):
         reward, next_state, done = 0, current_state, False
 
         # Repeat actions before fitting time.
-        for _ in range(self._fit_frequency):
+        for _ in range(self.fit_frequency):
             # Take an action.
             next_state, new_reward, done = self._take_action(agent, current_state, episode)
             # Add reward.
@@ -146,7 +151,7 @@ class Game(object):
         # Fit agent and keep fitting history.
         fitting_history = agent.fit()
         if fitting_history is not None:
-            self._scorer.huber_loss_history[episode - 1] += fitting_history.history['loss']
+            self.scorer.huber_loss_history[episode - 1] += fitting_history.history['loss']
 
         return next_state, reward, done
 
@@ -161,7 +166,7 @@ class Game(object):
         observe, done = init_state, False
 
         # Observe for a random number of steps picked from [1, self._no_operation].
-        for _ in range(randint(1, self._no_operation)):
+        for _ in range(randint(1, self.no_operation)):
             # Take no action.
             observe, _, done, _ = self._env.step(0)
             # Render the frame.
@@ -180,7 +185,7 @@ class Game(object):
         :return: generator containing the finished episode number.
         """
         # Run for a number of episodes.
-        for episode in range(1, self._episodes + 1):
+        for episode in range(1, self.episodes + 1):
             # Init vars.
             reward, max_score, total_score, done = 0, -inf, 0, False
 
@@ -192,17 +197,17 @@ class Game(object):
             current_state, done = self._observe(init_state)
 
             # Preprocess current_state.
-            current_state = atari_preprocess(current_state, self._downsample_scale)
+            current_state = atari_preprocess(current_state, self.downsample_scale)
 
             # Create preceding frames, using the starting frame.
-            current_state = np.stack(tuple([current_state for _ in range(self._agent_frame_history)]), axis=2)
+            current_state = np.stack(tuple([current_state for _ in range(self.agent_frame_history)]), axis=2)
 
             # Reshape the state.
             current_state = np.reshape(current_state,
                                        (1,
-                                        ceil(self.pixel_rows / self._downsample_scale),
-                                        ceil(self.pixel_columns / self._downsample_scale),
-                                        self._agent_frame_history))
+                                        ceil(self.pixel_rows / self.downsample_scale),
+                                        ceil(self.pixel_columns / self.downsample_scale),
+                                        self.agent_frame_history))
 
             while not done:
                 # Train the agent while playing.
@@ -213,83 +218,82 @@ class Game(object):
                 max_score = max(max_score, reward)
 
             # Add scores to the scores arrays.
-            self._scorer.max_scores[episode - 1] = max_score
-            self._scorer.total_scores[episode - 1] = total_score
+            self.scorer.max_scores[episode - 1] = max_score
+            self.scorer.total_scores[episode - 1] = total_score
 
             # Yield the finished episode.
             yield episode
 
-    def _update_progressbar(self, info_interval_current: int, finished_episode: int) -> None:
+    def _update_progressbar(self, finished_episode: int) -> None:
         """
         Updates game progressbar.
 
-        :param info_interval_current: the current episode's information interval.
         :param finished_episode: the episode that just finished.
         """
-        if not info_interval_current == 1 and finished_episode != self._episodes:
+        if not self.specs.info_interval_current == 1 and finished_episode != self.episodes:
             # Reinitialize progressbar if it just finished, but the game did not.
-            if finished_episode % info_interval_current == 0:
-                print_progressbar(0, info_interval_current,
-                                  'Episode: 0/{}'.format(info_interval_current),
-                                  'Finished: {}/{}'.format(finished_episode, self._episodes))
+            if finished_episode % self.specs.info_interval_current == 0:
+                print_progressbar(0, self.specs.info_interval_current,
+                                  'Episode: 0/{}'.format(self.specs.info_interval_current),
+                                  'Finished: {}/{}'.format(finished_episode, self.episodes))
 
             else:
-                print_progressbar(finished_episode % info_interval_current, info_interval_current,
-                                  'Episode: {}/{}'.format(finished_episode % info_interval_current,
-                                                          info_interval_current),
-                                  'Finished: {}/{}'.format(finished_episode, self._episodes))
+                print_progressbar(finished_episode % self.specs.info_interval_current, self.specs.info_interval_current,
+                                  'Episode: {}/{}'.format(finished_episode % self.specs.info_interval_current,
+                                                          self.specs.info_interval_current),
+                                  'Finished: {}/{}'.format(finished_episode, self.episodes))
 
-    def _end_of_episode_actions(self, finished_episode: int, specs: GameResultSpecs, agent: DQN,
-                                plotter: Plotter) -> None:
+    def _end_of_episode_actions(self, finished_episode: int, agent: DQN) -> None:
         """
         Takes actions after the episode finishes.
         Shows scoring information and saves the model.
 
         :param finished_episode: the episode for which the actions will be taken.
-        :param agent: the episode for which the actions will be taken.
-        :param plotter: the episode for which the actions will be taken.
+        :param agent: the agent with whom the episode was played.
         """
         # Save agent.
-        if finished_episode % specs.agent_save_interval == 0 or specs.agent_save_interval == 1:
+        if finished_episode % self.specs.agent_save_interval == 0 or self.specs.agent_save_interval == 1:
             print('Saving agent.')
-            filename = agent.save_agent("{}_{}".format(specs.agent_name_prefix, finished_episode))
+            filename = agent.save_agent("{}_{}".format(self.specs.agent_name_prefix, finished_episode))
             print('Agent has been successfully saved as {}.'.format(filename))
 
         # Show scores.
-        if finished_episode % specs.info_interval_current == 0 or specs.info_interval_current == 1:
-            self._scorer.show_episode_scoring(finished_episode)
+        if finished_episode % self.specs.info_interval_current == 0 or self.specs.info_interval_current == 1:
+            self.scorer.show_episode_scoring(finished_episode)
 
-        if specs.info_interval_mean > 1 and finished_episode % specs.info_interval_mean == 0:
-            self._scorer.show_mean_scoring(finished_episode)
+        if self.specs.info_interval_mean > 1 and finished_episode % self.specs.info_interval_mean == 0:
+            self.scorer.show_mean_scoring(finished_episode)
 
         # Update progressbar.
-        self._update_progressbar(specs.info_interval_current, finished_episode)
+        self._update_progressbar(finished_episode)
 
         # Plot scores.
-        if finished_episode == self._episodes and self._episodes > 1:
+        if finished_episode == self.episodes and self.episodes > 1:
             # Max score.
-            plotter.plot_score_vs_episodes(self._scorer.max_scores, 'Max Score vs Episodes',
-                                           '_max_scores_vs_episodes.png')
+            self.plotter.plot_score_vs_episodes(self.scorer.max_scores, 'Max Score vs Episodes',
+                                                '_max_scores_vs_episodes.png')
             # Total score.
-            plotter.plot_score_vs_episodes(self._scorer.total_scores, 'Total Score vs Episodes',
-                                           '_total_scores_vs_episodes.png')
+            self.plotter.plot_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
+                                                '_total_scores_vs_episodes.png')
             # Huber loss.
-            plotter.plot_score_vs_episodes(self._scorer.huber_loss_history,
-                                           'Total Huber loss vs episodes', '_loss_vs_episodes.png')
+            self.plotter.plot_score_vs_episodes(self.scorer.huber_loss_history,
+                                                'Total Huber loss vs episodes', '_loss_vs_episodes.png')
 
         # Save results.
-        if specs.results_save_interval > 0 and (
-                finished_episode % specs.results_save_interval == 0 or specs.results_save_interval == 1):
-            self._scorer.save_results(finished_episode)
+        if self.specs.results_save_interval > 0 and (
+                finished_episode % self.specs.results_save_interval == 0 or self.specs.results_save_interval == 1):
+            self.scorer.save_results(finished_episode)
 
-    def play_game(self, agent: DQN, specs: GameResultSpecs) -> None:
-        # Create a plotter.
-        plotter = Plotter(self._episodes, specs.plots_name_prefix, specs.plot_train_results, specs.save_plots)
+    def play_game(self, agent: DQN) -> None:
+        """
+        Plays the game.
 
+        :param agent: the agent who will take the actions in the game.
+        """
         # Initialize progressbar.
-        self._update_progressbar(specs.info_interval_current, 0)
+        self._update_progressbar(0)
 
         # Start the game loop.
         for finished_episode in self._game_loop(agent):
             # Take specific actions after the end of each episode.
-            self._end_of_episode_actions(finished_episode, specs, agent, plotter)
+            self._end_of_episode_actions(finished_episode, agent)

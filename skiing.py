@@ -140,9 +140,13 @@ if __name__ == '__main__':
     # Create a scorer.
     scorer = Scorer(episodes, info_interval_mean, results_name_prefix)
 
+    # Create the game specs.
+    game_specs = GameResultSpecs(info_interval_current, info_interval_mean, agent_save_interval, results_save_interval,
+                                 results_name_prefix, agent_name_prefix, plot_train_results, save_plots)
+
     # Create the game.
     game = Game(episodes, render, downsample_scale, scorer, agent_frame_history, steps_per_action, fit_frequency,
-                no_operation)
+                no_operation, game_specs)
 
     # Check arguments.
     run_checks()
@@ -153,7 +157,5 @@ if __name__ == '__main__':
     # Create the agent.
     agent = create_agent()
 
-    # Create game specs and play the game, using the agent.
-    game_specs = GameResultSpecs(info_interval_current, info_interval_mean, agent_save_interval, results_save_interval,
-                                 results_name_prefix, agent_name_prefix, plot_train_results, save_plots)
-    game.play_game(agent, game_specs)
+    # Play the game, using the agent.
+    game.play_game(agent)
