@@ -1,4 +1,5 @@
 from collections import Generator
+from dataclasses import dataclass
 from random import randint
 
 import gym
@@ -7,10 +8,25 @@ from gym.wrappers import TimeLimit
 from math import inf, ceil
 
 from core.agent import DQN
+from utils.os_operations import print_progressbar
+from utils.plotting import Plotter
 from utils.preprocessing import atari_preprocess
 from utils.scoring import Scorer
 
-GameInfo = [np.ndarray, float, bool]
+
+@dataclass
+class GameResultSpecs:
+    info_interval_current: int
+    info_interval_mean: int
+    agent_save_interval: int
+    results_save_interval: int
+    plots_name_prefix: str = 'plots'
+    agent_name_prefix: str = 'agent'
+    plot_train_results: bool = True
+    save_plots: bool = True
+
+
+_GameInfo = [np.ndarray, float, bool]
 
 
 class Game(object):
@@ -54,7 +70,7 @@ class Game(object):
         if self._render:
             self._env.render()
 
-    def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> GameInfo:
+    def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int) -> _GameInfo:
         """
         Repeats a game action.
 
@@ -90,7 +106,7 @@ class Game(object):
 
         return next_state, reward, done
 
-    def _take_action(self, agent: DQN, current_state: np.ndarray, episode: int) -> GameInfo:
+    def _take_action(self, agent: DQN, current_state: np.ndarray, episode: int) -> _GameInfo:
         """
         Takes an action.
 
@@ -106,7 +122,7 @@ class Game(object):
 
         return next_state, reward, done
 
-    def _train_and_play(self, agent: DQN, current_state: np.ndarray, episode: int) -> GameInfo:
+    def _train_and_play(self, agent: DQN, current_state: np.ndarray, episode: int) -> _GameInfo:
         """
         Train the agent while playing, using the current state.
 
@@ -156,7 +172,7 @@ class Game(object):
 
         return observe, done
 
-    def play_game(self, agent: DQN) -> Generator:
+    def _game_loop(self, agent: DQN) -> Generator:
         """
         Starts the game loop and trains the agent.
 
@@ -202,3 +218,78 @@ class Game(object):
 
             # Yield the finished episode.
             yield episode
+
+    def _update_progressbar(self, info_interval_current: int, finished_episode: int) -> None:
+        """
+        Updates game progressbar.
+
+        :param info_interval_current: the current episode's information interval.
+        :param finished_episode: the episode that just finished.
+        """
+        if not info_interval_current == 1 and finished_episode != self._episodes:
+            # Reinitialize progressbar if it just finished, but the game did not.
+            if finished_episode % info_interval_current == 0:
+                print_progressbar(0, info_interval_current,
+                                  'Episode: 0/{}'.format(info_interval_current),
+                                  'Finished: {}/{}'.format(finished_episode, self._episodes))
+
+            else:
+                print_progressbar(finished_episode % info_interval_current, info_interval_current,
+                                  'Episode: {}/{}'.format(finished_episode % info_interval_current,
+                                                          info_interval_current),
+                                  'Finished: {}/{}'.format(finished_episode, self._episodes))
+
+    def _end_of_episode_actions(self, finished_episode: int, specs: GameResultSpecs, agent: DQN,
+                                plotter: Plotter) -> None:
+        """
+        Takes actions after the episode finishes.
+        Shows scoring information and saves the model.
+
+        :param finished_episode: the episode for which the actions will be taken.
+        :param agent: the episode for which the actions will be taken.
+        :param plotter: the episode for which the actions will be taken.
+        """
+        # Save agent.
+        if finished_episode % specs.agent_save_interval == 0 or specs.agent_save_interval == 1:
+            print('Saving agent.')
+            filename = agent.save_agent("{}_{}".format(specs.agent_name_prefix, finished_episode))
+            print('Agent has been successfully saved as {}.'.format(filename))
+
+        # Show scores.
+        if finished_episode % specs.info_interval_current == 0 or specs.info_interval_current == 1:
+            self._scorer.show_episode_scoring(finished_episode)
+
+        if specs.info_interval_mean > 1 and finished_episode % specs.info_interval_mean == 0:
+            self._scorer.show_mean_scoring(finished_episode)
+
+        # Update progressbar.
+        self._update_progressbar(specs.info_interval_current, finished_episode)
+
+        # Plot scores.
+        if finished_episode == self._episodes and self._episodes > 1:
+            # Max score.
+            plotter.plot_score_vs_episodes(self._scorer.max_scores, 'Max Score vs Episodes',
+                                           '_max_scores_vs_episodes.png')
+            # Total score.
+            plotter.plot_score_vs_episodes(self._scorer.total_scores, 'Total Score vs Episodes',
+                                           '_total_scores_vs_episodes.png')
+            # Huber loss.
+            plotter.plot_score_vs_episodes(self._scorer.huber_loss_history,
+                                           'Total Huber loss vs episodes', '_loss_vs_episodes.png')
+
+        # Save results.
+        if specs.results_save_interval > 0 and (
+                finished_episode % specs.results_save_interval == 0 or specs.results_save_interval == 1):
+            self._scorer.save_results(finished_episode)
+
+    def play_game(self, agent: DQN, specs: GameResultSpecs) -> None:
+        # Create a plotter.
+        plotter = Plotter(self._episodes, specs.plots_name_prefix, specs.plot_train_results, specs.save_plots)
+
+        # Initialize progressbar.
+        self._update_progressbar(specs.info_interval_current, 0)
+
+        # Start the game loop.
+        for finished_episode in self._game_loop(agent):
+            # Take specific actions after the end of each episode.
+            self._end_of_episode_actions(finished_episode, specs, agent, plotter)

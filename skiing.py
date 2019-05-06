@@ -3,13 +3,12 @@ from os import path
 from warnings import warn
 
 from core.agent import DQN
-from core.game import Game
+from core.game import Game, GameResultSpecs
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
-from utils.os_operations import create_path, print_progressbar
+from utils.os_operations import create_path
 from utils.parser import create_parser
-from utils.plotting import Plotter
 from utils.scoring import Scorer
 
 
@@ -101,77 +100,20 @@ def create_agent() -> DQN:
     return dqn
 
 
-def save_agent(episode: int) -> None:
-    """
-    Saves the agent after a certain episode.
-
-    :param episode: the episode.
-    """
-    if episode % save_interval == 0 or save_interval == 1:
-        print('Saving agent.')
-        filename = agent.save_agent("{}_{}".format(agent_name_prefix, episode))
-        print('Agent has been successfully saved as {}.'.format(filename))
-
-
-def end_of_episode_actions(episode: int) -> None:
-    """
-    Take actions after the episode finishes.
-
-    Show scoring information and saves the model.
-
-    :param episode: the episode for which the actions will be taken.
-    """
-    # Show progressbar.
-    if not info_interval_current == 1:
-        print_progressbar(finished_episode % info_interval_current, info_interval_current,
-                          'Episode: {}/{}'.format(finished_episode % info_interval_current, info_interval_current),
-                          'Finished: {}/{}'.format(finished_episode, episodes))
-
-    # Reinitialize progressbar if it just finished, but the game did not.
-    if finished_episode % info_interval_current == 0 and finished_episode != episodes:
-        print_progressbar(0, info_interval_current,
-                          'Episode: 0/{}'.format(info_interval_current),
-                          'Finished: 0/{}'.format(episodes))
-
-    # Save agent.
-    save_agent(episode)
-
-    # Show scores.
-    if episode % info_interval_current == 0 or info_interval_current == 1:
-        scorer.show_episode_scoring(episode)
-
-    if info_interval_mean > 1 and episode % info_interval_mean == 0:
-        scorer.show_mean_scoring(episode)
-
-    # Plot scores.
-    if episode == episodes and episodes > 1:
-        # Max score.
-        plotter.plot_score_vs_episodes(scorer.max_scores, 'Max Score vs Episodes', '_max_scores_vs_episodes.png')
-        # Total score.
-        plotter.plot_score_vs_episodes(scorer.total_scores, 'Total Score vs Episodes', '_total_scores_vs_episodes.png')
-        # Huber loss.
-        plotter.plot_score_vs_episodes(scorer.huber_loss_history,
-                                       'Total Huber loss vs episodes', '_loss_vs_episodes.png')
-
-    # Save results.
-    if results_save_interval > 0 and (episode % results_save_interval == 0 or results_save_interval == 1):
-        scorer.save_results(episode)
-
-
 if __name__ == '__main__':
     # Get arguments.
     args = create_parser().parse_args()
     agent_name_prefix = args.filename_prefix
     results_name_prefix = args.results_name_prefix
     results_save_interval = args.results_save_interval
-    save_interval = args.save_interval
+    agent_save_interval = args.save_interval
     info_interval_current = args.info_interval_current
     info_interval_mean = args.info_interval_mean
     target_model_change = args.target_interval
     agent_path = args.agent
     agent_frame_history = args.agent_history
     plot_train_results = not args.no_plot
-    save_plot = not args.no_save_plot
+    save_plots = not args.no_save_plots
     plots_name_prefix = args.plot_name
     render = not args.no_render
     downsample_scale = args.downsample
@@ -211,15 +153,7 @@ if __name__ == '__main__':
     # Create the agent.
     agent = create_agent()
 
-    # Create a plotter.
-    plotter = Plotter(episodes, plots_name_prefix, plot_train_results, save_plot)
-
-    # Initialize progressbar.
-    print_progressbar(0, info_interval_current,
-                      'Episode: 0/{}'.format(info_interval_current),
-                      'Finished: 0/{}'.format(episodes))
-
-    # Start the game loop.
-    for finished_episode in game.play_game(agent):
-        # Take specific actions after the end of each episode.
-        end_of_episode_actions(finished_episode)
+    # Create game specs and play the game, using the agent.
+    game_specs = GameResultSpecs(info_interval_current, info_interval_mean, agent_save_interval, results_save_interval,
+                                 results_name_prefix, agent_name_prefix, plot_train_results, save_plots)
+    game.play_game(agent, game_specs)
