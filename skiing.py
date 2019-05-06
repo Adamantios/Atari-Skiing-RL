@@ -145,7 +145,7 @@ if __name__ == '__main__':
                                  results_name_prefix, agent_name_prefix, plot_train_results, save_plots)
 
     # Create the game.
-    game = Game(episodes, render, downsample_scale, scorer, agent_frame_history, steps_per_action, fit_frequency,
+    game = Game(episodes, downsample_scale, scorer, agent_frame_history, steps_per_action, fit_frequency,
                 no_operation, game_specs)
 
     # Check arguments.
@@ -158,4 +158,4 @@ if __name__ == '__main__':
     agent = create_agent()
 
     # Play the game, using the agent.
-    game.play_game(agent)
+    game.play_game(agent, render)
