@@ -61,7 +61,7 @@ class Game(object):
         :return: the skiing environment, the image's height, the image's width and the action space's size.
         """
         # Create the skiing environment.
-        environment = gym.make('Skiing-v0')
+        environment = gym.make('SkiingDeterministic-v4')
         # Get the observation space's height and width.
         height, width = environment.observation_space.shape[0], environment.observation_space.shape[1]
         # Get the number of possible moves.
