@@ -1,14 +1,13 @@
-from collections import deque
 from os import path
 from warnings import warn
 
-from core.agent import DQN
-from game_engine.game import Game, GameResultSpecs
+from core.agent import DQN, ExperienceReplayMemory
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
-from utils.system_operations import create_path
+from game_engine.game import Game, GameResultSpecs
 from utils.parser import create_parser
+from utils.system_operations import create_path
 
 
 def run_checks() -> None:
@@ -88,7 +87,7 @@ def create_agent() -> DQN:
         # Init the model.
         model = atari_skiing_model(game.observation_space_shape, game.action_space_size, optimizer)
         # Create the replay memory for the agent.
-        memory = deque(maxlen=replay_memory_size)
+        memory = ExperienceReplayMemory(replay_memory_size)
 
     # Create the policy.
     policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, game.action_space_size)

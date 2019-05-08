@@ -1,5 +1,4 @@
 import pickle
-from collections import deque
 from os import remove
 from os.path import basename, splitext, dirname, join
 from random import sample
@@ -15,9 +14,68 @@ from keras.utils import to_categorical
 from core.policy import EGreedyPolicy
 
 
+class ExperienceReplayMemory(object):
+    """ Implements a Ring Buffer with an extra function which randomly samples elements from it,
+    in order to be used as an Experience Replay Memory for the agent. """
+
+    def __init__(self, size: int):
+        # Check size value.
+        if size < 1:
+            raise ValueError('Memory size must be a positive integer. Got {} instead.'.format(size))
+
+        # Initialize array.
+        # Allocate one extra element, so that self.start == self.end always means the buffer is EMPTY,
+        # whereas if exactly the right number of elements is allocated,
+        # it also means the buffer is full. This greatly simplifies the rest of the code.
+        self.data = [None] * (size + 1)
+        # Initialize start pointer.
+        self.start = 0
+        # Initialize end pointer.
+        self.end = 0
+
+    def append(self, element) -> None:
+        """
+        Appends an element to the memory.
+
+        :param element: the element to append.
+        """
+        # Add the element to the end of the memory.
+        self.data[self.end] = element
+        # Increment the end pointer.
+        self.end = (self.end + 1) % len(self.data)
+
+        # Remove the first element by incrementing start pointer, if the memory size has been reached.
+        if self.end == self.start:
+            self.start = (self.start + 1) % len(self.data)
+
+    def randomly_sample(self, num_items: int) -> list:
+        """
+        Samples a number of items from the memory randomly.
+
+        :param num_items: the number of the random items to be sampled.
+        :return: the items.
+        """
+        # Sample a random number of memory indexes, which result in non empty contents and return the contents.
+        indexes = sample(range(len(self)), num_items)
+        return [self[idx] for idx in indexes]
+
+    def __getitem__(self, idx):
+        return self.data[(self.start + idx) % len(self.data)]
+
+    def __len__(self):
+        if self.end < self.start:
+            return self.end + len(self.data) - self.start
+        else:
+            return self.end - self.start
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+
+
 class DQN(object):
-    def __init__(self, model: Model, target_model_change: int, memory: deque, gamma: float, batch_size: int,
-                 observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy):
+    def __init__(self, model: Model, target_model_change: int, memory: ExperienceReplayMemory, gamma: float,
+                 batch_size: int, observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy):
         self.model = model
         self.target_model_change = target_model_change
         self.memory = memory
@@ -36,7 +94,7 @@ class DQN(object):
         :return: the current state batch, the actions batch, the rewards batch and the next state batch
         """
         # Randomly sample a mini batch.
-        mini_batch = sample(self.memory, self.batch_size)
+        mini_batch = self.memory.randomly_sample(self.batch_size)
 
         # Initialize arrays.
         current_state_batch, next_state_batch, actions, rewards = \
@@ -155,7 +213,7 @@ class DQN(object):
         return zip_filename
 
     @staticmethod
-    def load_agent(filename: str, custom_objects: dict) -> [Model, deque]:
+    def load_agent(filename: str, custom_objects: dict) -> [Model, ExperienceReplayMemory]:
         """
         Loads an agent from a file.
 
