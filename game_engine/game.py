@@ -9,9 +9,9 @@ from math import inf, ceil
 
 from core.agent import DQN
 from utils.os_operations import print_progressbar
-from utils.plotting import Plotter
-from utils.preprocessing import atari_preprocess
-from utils.scoring import Scorer
+from game_engine.plotting import Plotter
+from core.preprocessing import atari_preprocess
+from game_engine.scoring import Scorer
 
 
 @dataclass
