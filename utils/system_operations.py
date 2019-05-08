@@ -16,7 +16,7 @@ def create_path(filepath: str) -> None:
 
 
 def print_progressbar(iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 0,
-                      length: int = 50, fill: str = '█'):
+                      length: int = 50, fill: str = '='):
     """
     Call in a loop to create terminal progress bar.
     @params:
@@ -31,7 +31,8 @@ def print_progressbar(iteration: int, total: int, prefix: str = '', suffix: str 
     """
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
-    bar = fill * filled_length + '-' * (length - filled_length)
+    finish = '>' if iteration != 0 else ''
+    bar = fill * filled_length + finish + '-' * (length - filled_length)
     print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='\r')
 
     # Print New Line on Complete.
