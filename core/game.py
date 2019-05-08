@@ -31,11 +31,10 @@ _GameInfo = [np.ndarray, float, bool]
 
 
 class Game(object):
-    def __init__(self, episodes: int, downsample_scale: int, scorer: Scorer, agent_frame_history: int,
-                 steps_per_action: int, fit_frequency: int, no_operation: int, specs: GameResultSpecs):
+    def __init__(self, episodes: int, downsample_scale: int, agent_frame_history: int, steps_per_action: int,
+                 fit_frequency: int, no_operation: int, specs: GameResultSpecs):
         self.episodes = episodes
         self.downsample_scale = downsample_scale
-        self.scorer = scorer
         self.agent_frame_history = agent_frame_history
         self.steps_per_action = steps_per_action
         self.fit_frequency = fit_frequency
@@ -49,6 +48,9 @@ class Game(object):
         self.observation_space_shape = (ceil(self.pixel_rows / self.downsample_scale),
                                         ceil(self.pixel_columns / self.downsample_scale),
                                         self.agent_frame_history)
+
+        # Create a scorer.
+        self.scorer = Scorer(episodes, self.specs.info_interval_mean, self.specs.results_name_prefix)
 
         # Create a plotter.
         self.plotter = Plotter(self.episodes, self.specs.plots_name_prefix, self.specs.plot_train_results,

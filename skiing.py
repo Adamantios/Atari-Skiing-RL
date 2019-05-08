@@ -9,7 +9,6 @@ from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, m
 from core.policy import EGreedyPolicy
 from utils.os_operations import create_path
 from utils.parser import create_parser
-from utils.scoring import Scorer
 
 
 def run_checks() -> None:
@@ -137,16 +136,13 @@ if __name__ == '__main__':
     fuzz = args.fuzz
     momentum = args.momentum
 
-    # Create a scorer.
-    scorer = Scorer(episodes, info_interval_mean, results_name_prefix)
-
     # Create the game specs.
     game_specs = GameResultSpecs(info_interval_current, info_interval_mean, agent_save_interval, results_save_interval,
                                  plots_name_prefix, results_name_prefix, agent_name_prefix, plot_train_results,
                                  save_plots)
 
     # Create the game.
-    game = Game(episodes, downsample_scale, scorer, agent_frame_history, steps_per_action, fit_frequency,
+    game = Game(episodes, downsample_scale, agent_frame_history, steps_per_action, fit_frequency,
                 no_operation, game_specs)
 
     # Check arguments.
