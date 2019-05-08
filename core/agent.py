@@ -76,6 +76,7 @@ class ExperienceReplayMemory(object):
 class DQN(object):
     def __init__(self, model: Model, target_model_change: int, memory: ExperienceReplayMemory, gamma: float,
                  batch_size: int, observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy):
+        # TODO change the way the agent gets saved and loaded and move memory inside the class, passing only its size.
         self.model = model
         self.target_model_change = target_model_change
         self.memory = memory
