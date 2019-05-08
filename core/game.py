@@ -138,16 +138,19 @@ class Game(object):
 
         return current_state
 
-    def _repeat_action(self, agent: DQN, current_state: np.ndarray, action: int, render: bool) -> _GameInfo:
+    def _take_frame_skipping_action(self, agent: DQN, current_state: np.ndarray, episode: int,
+                                    render: bool) -> _GameInfo:
         """
-        Repeats a game action.
+        Takes an action, using frame skipping.
 
-        :param agent: the agent to repeat the action.
+        :param agent: the agent to take the action.
         :param current_state: the current state.
-        :param action: the action to repeat.
+        :param episode: the current episode.
         :param render: if the action should render.
         :return: the next state, the reward and if game is done.
         """
+        # Let the agent take an action.
+        action = agent.take_action(current_state, episode)
         # Init variables.
         reward, next_state, done = 0, current_state, False
 
@@ -176,23 +179,6 @@ class Game(object):
 
         return next_state, reward, done
 
-    def _take_action(self, agent: DQN, current_state: np.ndarray, episode: int, render: bool) -> _GameInfo:
-        """
-        Takes an action.
-
-        :param agent: the agent to take the action.
-        :param current_state: the current state.
-        :param episode: the current episode.
-        :param render: if the action should render.
-        :return: the next state, the reward and if game is done.
-        """
-        # Take an action, using the policy.
-        action = agent.take_action(current_state, episode)
-        # Repeat the action.
-        next_state, reward, done = self._repeat_action(agent, current_state, action, render)
-
-        return next_state, reward, done
-
     def _train_and_play(self, agent: DQN, current_state: np.ndarray, episode: int, render: bool) -> _GameInfo:
         """
         Train the agent while playing, using the current state.
@@ -209,7 +195,7 @@ class Game(object):
         # Repeat actions before fitting time.
         for _ in range(self.fit_frequency):
             # Take an action.
-            next_state, new_reward, done = self._take_action(agent, current_state, episode, render)
+            next_state, new_reward, done = self._take_frame_skipping_action(agent, current_state, episode, render)
             # Add reward.
             reward += new_reward
             if done:
