@@ -2,6 +2,7 @@ import pickle
 from os import remove
 from os.path import basename, splitext, dirname, join
 from random import sample
+from typing import Union
 from zipfile import ZipFile
 
 import numpy as np
@@ -139,7 +140,7 @@ class DQN(object):
         self.target_model.set_weights(self.model.get_weights())
         self.steps_from_update = 0
 
-    def fit(self) -> History:
+    def fit(self) -> Union[History, None]:
         """
         Fits the agent.
 
