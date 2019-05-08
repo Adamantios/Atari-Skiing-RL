@@ -7,7 +7,7 @@ from game_engine.game import Game, GameResultSpecs
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
-from utils.os_operations import create_path
+from utils.system_operations import create_path
 from utils.parser import create_parser
 
 

@@ -8,7 +8,7 @@ from gym.wrappers import TimeLimit
 from math import inf, ceil
 
 from core.agent import DQN
-from utils.os_operations import print_progressbar
+from utils.system_operations import print_progressbar
 from game_engine.plotting import Plotter
 from core.preprocessing import atari_preprocess
 from game_engine.scoring import Scorer
