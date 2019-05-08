@@ -21,6 +21,7 @@ class GameResultSpecs:
     agent_save_interval: int
     results_save_interval: int
     plots_name_prefix: str = 'plots'
+    results_name_prefix: str = 'results'
     agent_name_prefix: str = 'agent'
     plot_train_results: bool = True
     save_plots: bool = True

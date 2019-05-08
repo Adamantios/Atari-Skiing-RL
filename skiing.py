@@ -142,7 +142,8 @@ if __name__ == '__main__':
 
     # Create the game specs.
     game_specs = GameResultSpecs(info_interval_current, info_interval_mean, agent_save_interval, results_save_interval,
-                                 results_name_prefix, agent_name_prefix, plot_train_results, save_plots)
+                                 plots_name_prefix, results_name_prefix, agent_name_prefix, plot_train_results,
+                                 save_plots)
 
     # Create the game.
     game = Game(episodes, downsample_scale, scorer, agent_frame_history, steps_per_action, fit_frequency,
