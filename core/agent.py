@@ -54,6 +54,32 @@ class DQN(object):
 
         return current_state_batch, actions, rewards, next_state_batch
 
+    def take_action(self, current_state: np.ndarray, episode: int) -> int:
+        """
+        Takes an action based on the policy.
+
+        :param current_state: the state for which the action will be taken.
+        :param episode: the current episode.
+        :return: the action number.
+        """
+        return self.policy.take_action(self.model, current_state, episode)
+
+    def append_to_memory(self, current_state: np.ndarray, action: int, reward: float, next_state: np.ndarray) -> None:
+        """
+        Adds values to the agent's memory.
+
+        :param current_state: the state to add.
+        :param action: the action to add.
+        :param reward: the reward to add.
+        :param next_state: the next state to add.
+        """
+        self.memory.append((current_state, action, reward, next_state))
+
+    def update_target_model(self) -> None:
+        """ Updates the target model. """
+        self.target_model.set_weights(self.model.get_weights())
+        self.steps_from_update = 0
+
     def fit(self) -> History:
         """
         Fits the agent.
@@ -95,21 +121,6 @@ class DQN(object):
                 print('Target model has been successfully updated.')
 
             return history
-
-    def take_action(self, current_state: np.ndarray, episode: int) -> int:
-        """
-        Takes an action based on the policy.
-
-        :param current_state: the state for which the action will be taken.
-        :param episode: the current episode.
-        :return: the action number.
-        """
-        return self.policy.take_action(self.model, current_state, episode)
-
-    def update_target_model(self) -> None:
-        """ Updates the target model. """
-        self.target_model.set_weights(self.model.get_weights())
-        self.steps_from_update = 0
 
     def save_agent(self, filename_prefix: str = 'dqn') -> str:
         """
@@ -175,14 +186,3 @@ class DQN(object):
         remove(memory_filename)
 
         return model, memory
-
-    def append_to_memory(self, current_state: np.ndarray, action: int, reward: float, next_state: np.ndarray) -> None:
-        """
-        Adds values to the agent's memory.
-
-        :param current_state: the state to add.
-        :param action: the action to add.
-        :param reward: the reward to add.
-        :param next_state: the next state to add.
-        """
-        self.memory.append((current_state, action, reward, next_state))
