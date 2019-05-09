@@ -8,10 +8,10 @@ from gym.wrappers import TimeLimit
 from math import inf, ceil
 
 from core.agent import DQN
-from utils.system_operations import print_progressbar
-from game_engine.plotting import Plotter
 from core.preprocessing import atari_preprocess
+from game_engine.plotting import Plotter
 from game_engine.scoring import Scorer
+from utils.system_operations import print_progressbar
 
 
 @dataclass
@@ -244,17 +244,26 @@ class Game(object):
 
         :param finished_episode: the episode that just finished.
         """
-        if not self.specs.info_interval_current == 1 and finished_episode != self.episodes:
+        remaining_episodes = self.episodes - finished_episode
+
+        if not self.specs.info_interval_current == 1 and remaining_episodes > 1:
+            # Set the progressbar's remaining episodes number.
+            if self.specs.info_interval_current <= remaining_episodes \
+                    or finished_episode % self.specs.info_interval_current > 1:
+                bar_num_episodes = self.specs.info_interval_current
+            else:
+                bar_num_episodes = remaining_episodes
+
             # Reinitialize progressbar if it just finished, but the game did not.
             if finished_episode % self.specs.info_interval_current == 0:
                 print_progressbar(0, self.specs.info_interval_current,
-                                  'Episode: 0/{}'.format(self.specs.info_interval_current),
+                                  'Episode: 0/{}'.format(bar_num_episodes),
                                   'Finished: {}/{}'.format(finished_episode, self.episodes))
 
             else:
                 print_progressbar(finished_episode % self.specs.info_interval_current, self.specs.info_interval_current,
                                   'Episode: {}/{}'.format(finished_episode % self.specs.info_interval_current,
-                                                          self.specs.info_interval_current),
+                                                          bar_num_episodes),
                                   'Finished: {}/{}'.format(finished_episode, self.episodes))
 
     def _end_of_episode_actions(self, finished_episode: int, agent: DQN) -> None:
