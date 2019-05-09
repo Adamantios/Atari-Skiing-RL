@@ -62,6 +62,6 @@ class Scorer(object):
             self.total_scores[episode - self.info_interval_mean:episode].sum() / self.info_interval_mean
 
         print("Mean Max score for {}-{} episodes is: {} "
-              .format(episode - self.info_interval_mean, episode, mean_max_score))
+              .format(episode - self.info_interval_mean + 1, episode, mean_max_score))
         print("Mean Total score for {}-{} episodes is: {} "
-              .format(episode - self.info_interval_mean, episode, mean_total_score))
+              .format(episode - self.info_interval_mean + 1, episode, mean_total_score))
