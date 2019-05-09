@@ -32,13 +32,20 @@ class Plotter(object):
         :param filename_suffix: the saved plot's filename suffix.
         """
         if self.plot_train_results or self.save_plot:
-            fig = plt.figure(figsize=(12, 10))
+            fig, ax = plt.subplots(figsize=(12, 10))
             # Start from 1, not 0.
-            plt.xlim(1, self.episodes)
-            plt.plot(np.append(np.roll(score, 1), score[self.episodes - 1]))
-            plt.xticks(range(1, self.episodes + 1))
-            plt.title(title, fontsize='x-large')
-            plt.xlabel('Episode', fontsize='large')
-            plt.ylabel('Score', fontsize='large')
+            ax.set_xlim(1, self.episodes)
+            ax.plot(np.append(np.roll(score, 1), score[self.episodes - 1]))
+
+            # Arrange ticks, only if the episodes are less or equal with 20.
+            if self.episodes <= 20:
+                ax.set_xticks(range(1, self.episodes + 1))
+            else:
+                ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+            # Add title and labels.
+            ax.set_title(title, fontsize='x-large')
+            ax.set_xlabel('Episode', fontsize='large')
+            ax.set_ylabel('Score', fontsize='large')
 
             self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
