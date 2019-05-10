@@ -45,9 +45,10 @@ class Game(object):
         self._env, self.pixel_rows, self.pixel_columns, self.action_space_size = self._create_skiing_environment()
 
         # Create the observation space's shape.
-        self.observation_space_shape = (ceil(self.pixel_rows / self.downsample_scale),
+        self.observation_space_shape = (self.agent_frame_history,
+                                        ceil(self.pixel_rows / self.downsample_scale),
                                         ceil(self.pixel_columns / self.downsample_scale),
-                                        self.agent_frame_history)
+                                        1)
 
         # Create a scorer.
         self.scorer = Scorer(episodes, self.specs.info_interval_mean, self.specs.results_name_prefix)
@@ -127,14 +128,7 @@ class Game(object):
         current_state = atari_preprocess(current_state, self.downsample_scale)
 
         # Create preceding frames, using the starting frame.
-        current_state = np.stack(tuple([current_state for _ in range(self.agent_frame_history)]), axis=2)
-
-        # Reshape the state.
-        current_state = np.reshape(current_state,
-                                   (1,
-                                    ceil(self.pixel_rows / self.downsample_scale),
-                                    ceil(self.pixel_columns / self.downsample_scale),
-                                    self.agent_frame_history))
+        current_state = np.concatenate(tuple([current_state for _ in range(self.agent_frame_history)]), axis=1)
 
         return current_state
 
@@ -169,7 +163,7 @@ class Game(object):
             # Preprocess the state.
             next_state = atari_preprocess(next_state, self.downsample_scale)
             # Append the frame history.
-            next_state = np.append(next_state, current_state[:, :, :, :self.agent_frame_history - 1], axis=3)
+            next_state = np.append(next_state, current_state[:, :self.agent_frame_history - 1, :, :, :], axis=1)
 
             # Save sample <s,a,r,s'> to the replay memory.
             agent.append_to_memory(current_state, action, reward, next_state)

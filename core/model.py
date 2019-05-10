@@ -2,7 +2,7 @@ from typing import Union
 
 from keras import Input, Model
 from keras.backend import cast
-from keras.layers import Lambda, Conv2D, Flatten, Dense, Multiply
+from keras.layers import Lambda, Flatten, Dense, Multiply, ConvLSTM2D, BatchNormalization
 from keras.optimizers import Optimizer, adam, rmsprop, sgd, adagrad, adadelta, adamax
 
 # (last conv size + filter loss) * first conv stride, or first conv size if it is bigger.
@@ -31,18 +31,25 @@ def atari_skiing_model(shape: tuple, action_size: int, optimizer: Optimizer) -> 
     :return: the Keras Model.
     """
     # Create the input layers.
-    inputs = Input(shape)
-    actions_input = Input((action_size,))
+    inputs = Input(shape, name='input')
+    actions_input = Input((action_size,), name='input_mask')
     # Create a normalization layer.
-    normalized = Lambda(lambda x: x / 255.0)(inputs)
-    # Create hidden layers.
-    conv_1 = Conv2D(16, (8, 8), strides=(4, 4), activation='relu')(normalized)
-    conv_2 = Conv2D(32, (4, 4), strides=(2, 2), activation='relu')(conv_1)
-    conv_flattened = Flatten()(conv_2)
-    dense = Dense(256, activation='relu')(conv_flattened)
+    normalized = Lambda(lambda x: x / 255.0, name='normalisation')(inputs)
+
+    # Create CNN-LSTM layers.
+    conv_lstm2d_1 = ConvLSTM2D(16, (8, 8), strides=(4, 4), activation='relu', return_sequences=True,
+                               name='conv_lstm_2D_1')(normalized)
+    batch_norm = BatchNormalization(name='batch_norm1')(conv_lstm2d_1)
+    conv_lstm2d_2 = ConvLSTM2D(32, (4, 4), strides=(2, 2), activation='relu', name='conv_lstm_2D_2')(batch_norm)
+    batch_norm2 = BatchNormalization(name='batch_norm2')(conv_lstm2d_2)
+
+    # Flatten the output and pass it to a dense layer.
+    flattened = Flatten(name='flatten')(batch_norm2)
+    dense = Dense(256, activation='relu', name='dense1')(flattened)
+
     # Create and filter the output, multiplying it with the actions input mask, in order to get the QTable.
-    output = Dense(action_size)(dense)
-    filtered_output = Multiply()([output, actions_input])
+    output = Dense(action_size, name='dense2')(dense)
+    filtered_output = Multiply(name='filtered_output')([output, actions_input])
 
     # Create the model.
     model = Model(inputs=[inputs, actions_input], outputs=filtered_output)

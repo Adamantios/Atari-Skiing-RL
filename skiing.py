@@ -41,7 +41,7 @@ def run_checks() -> None:
 
     # Downsampling should result with at least 32 pixels on each dimension,
     # because the first convolutional layer has a filter 8x8 with stride 4x4.
-    if not frame_can_pass_the_net(game.observation_space_shape[0], game.observation_space_shape[1]):
+    if not frame_can_pass_the_net(game.observation_space_shape[1], game.observation_space_shape[2]):
         raise ValueError('Downsample is too big. It can be set from 1 to {}'
                          .format(min(int(game.pixel_rows / MIN_FRAME_DIM_THAT_PASSES_NET),
                                      int(game.pixel_columns / MIN_FRAME_DIM_THAT_PASSES_NET))))

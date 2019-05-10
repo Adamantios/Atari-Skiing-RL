@@ -39,5 +39,5 @@ def atari_preprocess(frame_array: np.ndarray, downsample_scale: int = 2) -> np.n
     # Downsampling the image.
     resized_frame = downsample(greyscale_frame, downsample_scale)
 
-    # Reshape for batches and frames and return.
-    return resized_frame[np.newaxis, :, :, np.newaxis]
+    # Reshape for batches, frames and color dimension and return.
+    return resized_frame[np.newaxis, np.newaxis, :, :, np.newaxis]
