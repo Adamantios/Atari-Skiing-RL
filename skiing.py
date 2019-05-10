@@ -2,7 +2,7 @@ from os import path
 from warnings import warn
 
 from core.agent import DQN, ExperienceReplayMemory
-from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, min_frame_dim_that_passes_net, \
+from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, MIN_FRAME_DIM_THAT_PASSES_NET, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
 from game_engine.game import Game, GameResultSpecs
@@ -43,8 +43,8 @@ def run_checks() -> None:
     # because the first convolutional layer has a filter 8x8 with stride 4x4.
     if not frame_can_pass_the_net(game.observation_space_shape[0], game.observation_space_shape[1]):
         raise ValueError('Downsample is too big. It can be set from 1 to {}'
-                         .format(min(int(game.pixel_rows / min_frame_dim_that_passes_net()),
-                                     int(game.pixel_columns / min_frame_dim_that_passes_net()))))
+                         .format(min(int(game.pixel_rows / MIN_FRAME_DIM_THAT_PASSES_NET),
+                                     int(game.pixel_columns / MIN_FRAME_DIM_THAT_PASSES_NET))))
 
     if plot_train_results and episodes == 1:
         warn('Cannot plot for 1 episode only.')

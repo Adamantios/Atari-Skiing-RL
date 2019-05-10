@@ -5,17 +5,9 @@ from keras.backend import cast
 from keras.layers import Lambda, Conv2D, Flatten, Dense, Multiply
 from keras.optimizers import Optimizer, adam, rmsprop, sgd, adagrad, adadelta, adamax
 
-
-def min_frame_dim_that_passes_net() -> int:
-    """
-    Calculates the minimum that each frame's dimension is required to have,
-    in order to pass through the network.
-
-    :return: the min frame dimension.
-    """
-    # (last conv size + filter loss) * first conv stride, or first conv size if it is bigger.
-    # ( 4 + 1 ) * 4 or 8
-    return 20
+# (last conv size + filter loss) * first conv stride, or first conv size if it is bigger.
+# ( 4 + 1 ) * 4 or 8
+MIN_FRAME_DIM_THAT_PASSES_NET = 20
 
 
 def frame_can_pass_the_net(height: int, width: int) -> bool:
@@ -26,7 +18,7 @@ def frame_can_pass_the_net(height: int, width: int) -> bool:
     :param width: the frame's width.
     :return: bool.
     """
-    return height >= min_frame_dim_that_passes_net() and width >= min_frame_dim_that_passes_net()
+    return height >= MIN_FRAME_DIM_THAT_PASSES_NET and width >= MIN_FRAME_DIM_THAT_PASSES_NET
 
 
 def atari_skiing_model(shape: tuple, action_size: int, optimizer: Optimizer) -> Model:
