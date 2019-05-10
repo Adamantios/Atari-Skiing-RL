@@ -104,8 +104,8 @@ def create_parser() -> ArgumentParser:
                         help='Whether the environment should not be rendered.')
     parser.add_argument('-d', '--downsample', type=positive_int, default=DOWNSAMPLE_SCALE, required=False,
                         help='The downsampling scale to be used (default %(default)s).')
-    parser.add_argument('-s', '--steps', type=positive_int, default=STEPS_PER_ACTION, required=False,
-                        help='The steps to skip per action (default %(default)s).')
+    parser.add_argument('-fs', '--frame_skipping', type=positive_int, default=STEPS_PER_ACTION, required=False,
+                        help='The frames to skip per action (default %(default)s).')
     parser.add_argument('-ff', '--fit_frequency', type=positive_int, default=FIT_FREQUENCY, required=False,
                         help='The actions to take between an agent\'s fit (default %(default)s).')
     parser.add_argument('-no', '--no_operation', type=positive_int, default=NO_OPERATION, required=False,
