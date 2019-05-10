@@ -101,16 +101,16 @@ def huber_loss(y_true, y_pred):
     :return: a tensor with the result.
     """
     # Calculate the error.
-    error = y_true - y_pred
+    error = abs(y_true - y_pred)
 
     # Calculate MSE.
     quadratic_term = error * error / 2
     # Calculate MAE.
-    linear_term = abs(error) - 1 / 2
+    linear_term = error - 1 / 2
 
     # Use mae if |error| > 1.
-    use_linear_term = (abs(error) > 1.0)
-    # Cast the booleans to floats, in order to be compatible with Keras.
+    use_linear_term = (error > 1.0)
+    # Cast the boolean to float, in order to be compatible with Keras.
     use_linear_term = cast(use_linear_term, 'float32')
 
     # Return MAE or MSE based on the flag.
