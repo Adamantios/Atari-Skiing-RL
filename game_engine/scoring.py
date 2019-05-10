@@ -10,9 +10,9 @@ class Scorer(object):
         self.results_name_prefix = results_name_prefix
 
         # Initialize arrays for the scores and history.
-        self.max_scores = np.empty(episodes, dtype=np.float)
-        self.total_scores = np.empty(episodes, dtype=np.float)
-        self.huber_loss_history = np.zeros(episodes, dtype=np.float)
+        self.max_scores = np.empty(episodes, dtype=np.int32)
+        self.total_scores = np.empty(episodes, dtype=np.int32)
+        self.huber_loss_history = np.zeros(episodes, dtype=np.float16)
 
     def save_results(self, episode: int) -> None:
         """
