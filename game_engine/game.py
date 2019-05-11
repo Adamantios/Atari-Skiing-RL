@@ -287,14 +287,14 @@ class Game(object):
         # Plot scores.
         if finished_episode == self.episodes and self.episodes > 1:
             # Max score.
-            self.plotter.plot_score_vs_episodes(self.scorer.max_scores, 'Max Score vs Episodes',
-                                                '_max_scores_vs_episodes.png')
+            self.plotter.plot_max_score_vs_episodes(self.scorer.max_scores, 'Max Score vs Episodes',
+                                                    '_max_scores_vs_episodes.png')
             # Total score.
-            self.plotter.plot_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
-                                                '_total_scores_vs_episodes.png')
+            self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
+                                                      '_total_scores_vs_episodes.png')
             # Huber loss.
-            self.plotter.plot_score_vs_episodes(self.scorer.huber_loss_history,
-                                                'Total Huber loss vs episodes', '_loss_vs_episodes.png')
+            self.plotter.plot_huber_loss_vs_episodes(self.scorer.huber_loss_history,
+                                                     'Total Huber loss vs episodes', '_loss_vs_episodes.png')
 
         # Save results.
         if self.specs.results_save_interval > 0 and (

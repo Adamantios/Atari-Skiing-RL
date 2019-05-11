@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 
@@ -23,19 +24,23 @@ class Plotter(object):
         if self.save_plot:
             fig.savefig(filename)
 
-    def plot_score_vs_episodes(self, score: np.ndarray, title: str, filename_suffix: str) -> None:
+    def _plot_score_vs_episodes(self, score: np.ndarray, title: str, y_label: str) -> [Figure, Axes]:
         """
         Plots a score array vs episodes.
 
         :param score: the array with the scores.
         :param title: the plot's title.
-        :param filename_suffix: the saved plot's filename suffix.
+        :param y_label: the y label text.
         """
         if self.plot_train_results or self.save_plot:
             fig, ax = plt.subplots(figsize=(12, 10))
-            # Start from 1, not 0.
+            # Plot mean.
+            mean = np.mean(score)
+            ax.plot(np.asarray([mean for _ in range(self.episodes + 1)]), label='Mean={}'.format(mean))
+
+            # Plot data.
             ax.set_xlim(1, self.episodes)
-            ax.plot(np.append(np.roll(score, 1), score[self.episodes - 1]))
+            ax.plot(np.append(np.roll(score, 1), score[self.episodes - 1]), label='Score')
 
             # Arrange ticks, only if the episodes are less or equal with 20.
             if self.episodes <= 20:
@@ -43,9 +48,54 @@ class Plotter(object):
             else:
                 ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-            # Add title and labels.
+            # Add title, legends and labels.
             ax.set_title(title, fontsize='x-large')
+            ax.legend()
             ax.set_xlabel('Episode', fontsize='large')
-            ax.set_ylabel('Score', fontsize='large')
+            ax.set_ylabel(y_label, fontsize='large')
 
-            self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
+            return fig, ax
+
+    def plot_max_score_vs_episodes(self, score: np.ndarray, title: str, filename_suffix: str) -> None:
+        """
+        Plots max score array vs episodes.
+
+        :param score: the array with the scores.
+        :param title: the plot's title.
+        :param filename_suffix: the saved plot's filename suffix.
+        """
+        fig, ax = self._plot_score_vs_episodes(score, title, 'Score')
+        self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
+
+    def plot_total_score_vs_episodes(self, score: np.ndarray, title: str, filename_suffix: str,
+                                     compare: bool = True) -> None:
+        """
+        Plots total score array vs episodes.
+
+        :param score: the array with the scores.
+        :param title: the plot's title.
+        :param filename_suffix: the saved plot's filename suffix.
+        :param compare: whether the plot should be compared with the state of art.
+        """
+        fig, ax = self._plot_score_vs_episodes(score, title, 'Score')
+
+        if compare:
+            # TODO add more state of the art measurements and add max and min marks.
+            random = -17098.1
+            ax.plot(np.asarray([random for _ in range(self.episodes + 1)]), label='Random={}'.format(random),
+                    color='green')
+
+            # Reset legends.
+            ax.legend()
+        self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
+
+    def plot_huber_loss_vs_episodes(self, loss: np.ndarray, title: str, filename_suffix: str) -> None:
+        """
+        Plots max score array vs episodes.
+
+        :param loss: the array with the losses.
+        :param title: the plot's title.
+        :param filename_suffix: the saved plot's filename suffix.
+        """
+        fig, ax = self._plot_score_vs_episodes(loss, title, 'Loss')
+        self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
