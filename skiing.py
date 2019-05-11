@@ -115,7 +115,7 @@ if __name__ == '__main__':
     plots_name_prefix = args.plot_name
     render = not args.no_render
     downsample_scale = args.downsample
-    steps_per_action = args.steps
+    steps_per_action = args.frame_skipping
     fit_frequency = args.fit_frequency
     no_operation = args.no_operation
     episodes = args.episodes
