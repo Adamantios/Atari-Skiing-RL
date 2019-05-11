@@ -1,4 +1,5 @@
 matplotlib
 gym
+tensorflow
 keras
 numpy
