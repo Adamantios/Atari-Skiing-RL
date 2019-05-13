@@ -33,14 +33,35 @@ class Plotter(object):
         :param y_label: the y label text.
         """
         if self.plot_train_results or self.save_plot:
+            # Create subplot.
             fig, ax = plt.subplots(figsize=(12, 10))
+
+            # Set x and y.
+            x = np.asarray(range(self.episodes + 1))
+            y = np.append(np.roll(score, 1), score[self.episodes - 1])
+
             # Plot mean.
             mean = np.mean(score)
-            ax.plot(np.asarray([mean for _ in range(self.episodes + 1)]), label='Mean={}'.format(mean))
+            ax.plot(np.asarray([mean for _ in x]), label='Mean={}'.format(mean))
 
             # Plot data.
             ax.set_xlim(1, self.episodes)
-            ax.plot(np.append(np.roll(score, 1), score[self.episodes - 1]), label='Score')
+            ax.plot(y, label='Score')
+
+            # Unroll x and y.
+            x = x[1:]
+            y = y[1:]
+
+            # Calculate max and min values.
+            x_max, y_max = x[np.argmax(y)], y.max()
+            x_min, y_min = x[np.argmin(y)], y.min()
+
+            # Annotate max and min values, only if they are different.
+            if x_max != x_min:
+                ax.scatter(x_max, y_max, label='Episode={}, Max Score={}'.format(x_max, y_max),
+                           color='#161925', s=150, marker='*')
+                ax.scatter(x_min, y_min, label='Episode={}, Min Score={}'.format(x_min, y_min),
+                           color='#f1d302', s=150, marker='X')
 
             # Arrange ticks, only if the episodes are less or equal with 20.
             if self.episodes <= 20:
@@ -80,7 +101,7 @@ class Plotter(object):
         fig, ax = self._plot_score_vs_episodes(score, title, 'Score')
 
         if compare:
-            # TODO add more state of the art measurements and add max and min marks.
+            # TODO add more state of the art measurements.
             random = -17098.1
             ax.plot(np.asarray([random for _ in range(self.episodes + 1)]), label='Random={}'.format(random),
                     color='green')
