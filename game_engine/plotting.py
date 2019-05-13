@@ -101,13 +101,8 @@ class Plotter(object):
         fig, ax = self._plot_score_vs_episodes(score, title, 'Score')
 
         if compare:
-            # TODO add more state of the art measurements.
-            random = -17098.1
-            ax.plot(np.asarray([random for _ in range(self.episodes + 1)]), label='Random={}'.format(random),
-                    color='green')
+            self._annotate_state_of_the_art(ax)
 
-            # Reset legends.
-            ax.legend()
         self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
 
     def plot_huber_loss_vs_episodes(self, loss: np.ndarray, title: str, filename_suffix: str) -> None:
@@ -120,3 +115,24 @@ class Plotter(object):
         """
         fig, ax = self._plot_score_vs_episodes(loss, title, 'Loss')
         self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
+
+    def _annotate_state_of_the_art(self, ax: Axes) -> None:
+        """
+        Annotates state of the art.
+
+        :param ax: the ax to annotate.
+        """
+        # Init state of the art dictionary.
+        state_of_the_art = {
+            'Human': -4336.9,
+            'NN DDQN': -7550,
+            'DQN': -12630,
+            'Random': -17098.1
+        }
+
+        # Plot state of the art measurements.
+        for whom, score in state_of_the_art.items():
+            ax.plot(np.asarray([score for _ in range(self.episodes + 1)]), label='{}={}'.format(whom, score))
+
+        # Reset legends.
+        ax.legend()
