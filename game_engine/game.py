@@ -291,7 +291,10 @@ class Game(object):
                                                     '_max_scores_vs_episodes.png')
             # Total score.
             self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
-                                                      '_total_scores_vs_episodes.png')
+                                                      '_total_scores_vs_episodes.png', False)
+            # Total score compared with the state of the art.
+            self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
+                                                      '_total_scores_vs_episodes_soa_compared.png')
             # Huber loss.
             self.plotter.plot_huber_loss_vs_episodes(self.scorer.huber_loss_history,
                                                      'Total Huber loss vs episodes', '_loss_vs_episodes.png')
