@@ -24,13 +24,17 @@ class Plotter(object):
         if self.save_plot:
             fig.savefig(filename)
 
-    def _plot_score_vs_episodes(self, score: np.ndarray, title: str, y_label: str) -> [Figure, Axes]:
+    def _plot_score_vs_episodes(self, score: np.ndarray, observing_episodes: int, title: str, y_label: str) -> [Figure,
+                                                                                                                Axes]:
         """
         Plots a score array vs episodes.
 
         :param score: the array with the scores.
         :param title: the plot's title.
         :param y_label: the y label text.
+        :param observing_episodes: the number of episodes to fill the area between them
+         and not consider them for the min and max values.
+         These should be the episodes that the agent was taking random actions.
         """
         if self.plot_train_results or self.save_plot:
             # Create subplot.
@@ -42,26 +46,33 @@ class Plotter(object):
 
             # Plot mean.
             mean = np.mean(score)
-            ax.plot(np.asarray([mean for _ in x]), label='Mean={}'.format(mean))
+            ax.plot(np.asarray([mean for _ in x]), label='Mean={:.4f}'.format(mean))
 
             # Plot data.
             ax.set_xlim(1, self.episodes)
             ax.plot(y, label='Score')
 
+            # Fill episodes.
+            ax.fill_between(x, y.min(), y.max(), where=x <= observing_episodes, alpha=.4, color='#574ae2',
+                            label='Random Behavior({} first episodes)'.format(observing_episodes))
+
             # Unroll x and y.
             x = x[1:]
             y = y[1:]
 
-            # Calculate max and min values.
-            x_max, y_max = x[np.argmax(y)], y.max()
-            x_min, y_min = x[np.argmin(y)], y.min()
+            # Calculate max and min values, without including the observing episodes.
+            if observing_episodes < self.episodes:
+                x_no_fill = x[observing_episodes:]
+                y_no_fill = y[observing_episodes:]
+                x_max, y_max = x_no_fill[np.argmax(y_no_fill)], y_no_fill.max()
+                x_min, y_min = x_no_fill[np.argmin(y_no_fill)], y_no_fill.min()
 
-            # Annotate max and min values, only if they are different.
-            if x_max != x_min:
-                ax.scatter(x_max, y_max, label='Episode={}, Max Score={}'.format(x_max, y_max),
-                           color='#161925', s=150, marker='*')
-                ax.scatter(x_min, y_min, label='Episode={}, Min Score={}'.format(x_min, y_min),
-                           color='#f1d302', s=150, marker='X')
+                # Annotate max and min values, only if they are different.
+                if x_max != x_min:
+                    ax.scatter(x_max, y_max, label='Episode={}, Max={}'.format(x_max, y_max),
+                               color='#161925', s=150, marker='*')
+                    ax.scatter(x_min, y_min, label='Episode={}, Min={}'.format(x_min, y_min),
+                               color='#f1d302', s=150, marker='X')
 
             # Arrange ticks, only if the episodes are less or equal with 20.
             if self.episodes <= 20:
@@ -77,19 +88,23 @@ class Plotter(object):
 
             return fig, ax
 
-    def plot_max_score_vs_episodes(self, score: np.ndarray, title: str, filename_suffix: str) -> None:
+    def plot_max_score_vs_episodes(self, score: np.ndarray, observing_episodes: int, title: str,
+                                   filename_suffix: str) -> None:
         """
         Plots max score array vs episodes.
 
         :param score: the array with the scores.
         :param title: the plot's title.
         :param filename_suffix: the saved plot's filename suffix.
+        :param observing_episodes: the number of episodes to fill the area between them
+         and not consider them for the min and max values.
+         These should be the episodes that the agent was taking random actions.
         """
-        fig, ax = self._plot_score_vs_episodes(score, title, 'Score')
+        fig, ax = self._plot_score_vs_episodes(score, observing_episodes, title, 'Score')
         self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
 
-    def plot_total_score_vs_episodes(self, score: np.ndarray, title: str, filename_suffix: str,
-                                     compare: bool = True) -> None:
+    def plot_total_score_vs_episodes(self, score: np.ndarray, observing_episodes: int, title: str,
+                                     filename_suffix: str, compare: bool = True) -> None:
         """
         Plots total score array vs episodes.
 
@@ -97,23 +112,30 @@ class Plotter(object):
         :param title: the plot's title.
         :param filename_suffix: the saved plot's filename suffix.
         :param compare: whether the plot should be compared with the state of art.
+        :param observing_episodes: the number of episodes to fill the area between them
+         and not consider them for the min and max values.
+         These should be the episodes that the agent was taking random actions.
         """
-        fig, ax = self._plot_score_vs_episodes(score, title, 'Score')
+        fig, ax = self._plot_score_vs_episodes(score, observing_episodes, title, 'Score')
 
         if compare:
             self._annotate_state_of_the_art(ax)
 
         self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
 
-    def plot_huber_loss_vs_episodes(self, loss: np.ndarray, title: str, filename_suffix: str) -> None:
+    def plot_huber_loss_vs_episodes(self, loss: np.ndarray, observing_episodes: int, title: str,
+                                    filename_suffix: str) -> None:
         """
         Plots max score array vs episodes.
 
         :param loss: the array with the losses.
         :param title: the plot's title.
         :param filename_suffix: the saved plot's filename suffix.
+        :param observing_episodes: the number of episodes to fill the area between them
+         and not consider them for the min and max values.
+         These should be the episodes that the agent was taking random actions.
         """
-        fig, ax = self._plot_score_vs_episodes(loss, title, 'Loss')
+        fig, ax = self._plot_score_vs_episodes(loss, observing_episodes, title, 'Loss')
         self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
 
     def _annotate_state_of_the_art(self, ax: Axes) -> None:

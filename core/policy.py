@@ -13,6 +13,7 @@ class EGreedyPolicy(object):
         self.action_size = action_size
         self.steps_taken = 0
         self.observing = True
+        self.episode_observation_stopped = 0
 
     def _decay_epsilon(self) -> None:
         """ Decays the policy's epsilon. """
@@ -32,8 +33,9 @@ class EGreedyPolicy(object):
             self.steps_taken += 1
             if self.total_observe_count == self.steps_taken:
                 self.observing = False
+                self.episode_observation_stopped = episode
                 print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
-                      .format(episode))
+                      .format(self.episode_observation_stopped))
 
     def take_action(self, model: Model, current_state: np.ndarray, episode: int) -> int:
         """

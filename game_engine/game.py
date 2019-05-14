@@ -286,17 +286,22 @@ class Game(object):
 
         # Plot scores.
         if finished_episode == self.episodes and self.episodes > 1:
+            observing_episodes = self.episodes if agent.policy.observing else agent.policy.episode_observation_stopped
+
             # Max score.
-            self.plotter.plot_max_score_vs_episodes(self.scorer.max_scores, 'Max Score vs Episodes',
+            self.plotter.plot_max_score_vs_episodes(self.scorer.max_scores, observing_episodes,
+                                                    'Max Score vs Episodes',
                                                     '_max_scores_vs_episodes.png')
             # Total score.
-            self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
+            self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, observing_episodes,
+                                                      'Total Score vs Episodes',
                                                       '_total_scores_vs_episodes.png', False)
             # Total score compared with the state of the art.
-            self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, 'Total Score vs Episodes',
+            self.plotter.plot_total_score_vs_episodes(self.scorer.total_scores, observing_episodes,
+                                                      'Total Score vs Episodes',
                                                       '_total_scores_vs_episodes_soa_compared.png')
             # Huber loss.
-            self.plotter.plot_huber_loss_vs_episodes(self.scorer.huber_loss_history,
+            self.plotter.plot_huber_loss_vs_episodes(self.scorer.huber_loss_history, observing_episodes,
                                                      'Total Huber loss vs episodes', '_loss_vs_episodes.png')
 
         # Save results.
