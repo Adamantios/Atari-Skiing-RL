@@ -119,7 +119,7 @@ def create_parser() -> ArgumentParser:
                         help='The final epsilon for the e-greedy policy (default %(default)s).')
     parser.add_argument('-deps', '--decay', type=positive_float, default=EPSILON_DECAY, required=False,
                         help='The epsilon decay for the e-greedy policy (default %(default)s).')
-    parser.add_argument('-o', '--observe', type=positive_int, default=TOTAL_OBSERVE_COUNT, required=False,
+    parser.add_argument('-o', '--observe', type=int, default=TOTAL_OBSERVE_COUNT, required=False,
                         help='The total number of observing steps before the training begins, '
                              'thus taking random actions (default %(default)s).')
     parser.add_argument('-rm', '--replay_memory', type=positive_int, default=REPLAY_MEMORY_SIZE, required=False,

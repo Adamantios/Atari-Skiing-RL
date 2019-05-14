@@ -36,9 +36,9 @@ class EGreedyPolicy(object):
 
         :param episode: the current episode.
         """
-        if self.steps_taken < self.total_observe_count:
+        if self.steps_taken < self.total_observe_count + 1:
             self.steps_taken += 1
-            if self.total_observe_count == self.steps_taken:
+            if self.total_observe_count + 1 == self.steps_taken:
                 self.observing = False
                 self.episode_observation_stopped = episode
                 print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
@@ -65,6 +65,6 @@ class EGreedyPolicy(object):
             action = np.argmax(q_value[0])
 
         # Decay epsilon.
-        self._decay_epsilon()
+        self._decay_epsilon(episode)
 
         return action

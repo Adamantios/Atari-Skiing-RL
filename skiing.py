@@ -64,13 +64,16 @@ def run_checks() -> None:
     if epsilon_decay > epsilon - final_epsilon:
         warn('Epsilon decay is too big ({})!'.format(epsilon_decay))
 
-    if total_observe_count < poor_observe:
+    if total_observe_count < poor_observe and agent_path == '':
         warn('The total number of observing steps ({}) is too small and could bring poor results.'
              'Consider a value grater than {}'.format(total_observe_count, poor_observe))
 
-    if total_observe_count < batch_size:
-        raise ValueError('The total number of observing steps ({}) cannot be smaller than the batch size ({}).'
-                         .format(total_observe_count, batch_size))
+    if agent.memory.end < batch_size:
+        raise ValueError('The total number of observing steps ({}) '
+                         'cannot be smaller than the agent\'s memory size ( current = {}, final = {} )'
+                         ' after the observing steps ({}).'
+                         .format(total_observe_count, agent.memory.end, agent.memory.end + total_observe_count,
+                                 total_observe_count))
 
 
 def create_agent() -> DQN:
@@ -144,14 +147,14 @@ if __name__ == '__main__':
     game = Game(episodes, downsample_scale, agent_frame_history, steps_per_action, fit_frequency,
                 no_operation, game_specs)
 
-    # Check arguments.
-    run_checks()
-
     # Create the optimizer.
     optimizer = initialize_optimizer(optimizer_name, learning_rate, beta1, beta2, lr_decay, rho, fuzz, momentum)
 
     # Create the agent.
     agent = create_agent()
+
+    # Check arguments.
+    run_checks()
 
     # Play the game, using the agent.
     game.play_game(agent, render)
