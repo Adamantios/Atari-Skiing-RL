@@ -68,11 +68,12 @@ def run_checks() -> None:
         warn('The total number of observing steps ({}) is too small and could bring poor results.'
              'Consider a value grater than {}'.format(total_observe_count, poor_observe))
 
-    if agent.memory.end < batch_size:
+    final_memory_size = agent.memory.end + total_observe_count
+    if final_memory_size < batch_size:
         raise ValueError('The total number of observing steps ({}) '
                          'cannot be smaller than the agent\'s memory size ( current = {}, final = {} )'
                          ' after the observing steps ({}).'
-                         .format(total_observe_count, agent.memory.end, agent.memory.end + total_observe_count,
+                         .format(total_observe_count, agent.memory.end, final_memory_size,
                                  total_observe_count))
 
 
