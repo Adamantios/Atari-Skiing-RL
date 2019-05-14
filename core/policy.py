@@ -15,13 +15,20 @@ class EGreedyPolicy(object):
         self.observing = True
         self.episode_observation_stopped = 0
 
-    def _decay_epsilon(self) -> None:
-        """ Decays the policy's epsilon. """
+    def _decay_epsilon(self, episode: int) -> None:
+        """
+        Decays the policy's epsilon.
+
+        :param episode: the current episode.
+        """
         if self.e > self.final_e and not self.observing:
             self.e -= self.epsilon_decay
 
             if self.e < self.final_e:
                 self.e = self.final_e
+
+            if self.e == self.final_e:
+                print('Final epsilon reached at episode {}'.format(episode))
 
     def _update_steps(self, episode: int) -> None:
         """
