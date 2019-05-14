@@ -41,8 +41,9 @@ class EGreedyPolicy(object):
             if self.total_observe_count + 1 == self.steps_taken:
                 self.observing = False
                 self.episode_observation_stopped = episode
-                print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
-                      .format(self.episode_observation_stopped))
+                if self.total_observe_count > 0:
+                    print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
+                          .format(self.episode_observation_stopped))
 
     def take_action(self, model: Model, current_state: np.ndarray, episode: int) -> int:
         """
