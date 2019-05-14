@@ -240,22 +240,22 @@ class Game(object):
         """
         remaining_episodes = self.episodes - finished_episode
 
-        if not self.specs.info_interval_current == 1 and remaining_episodes > 1:
+        if not self.specs.info_interval_current == 1:
             # Set the progressbar's remaining episodes number.
             if self.specs.info_interval_current <= remaining_episodes \
-                    or finished_episode % self.specs.info_interval_current > 1:
+                    or self.episodes - (self.episodes % self.specs.info_interval_current) > finished_episode:
                 bar_num_episodes = self.specs.info_interval_current
             else:
-                bar_num_episodes = remaining_episodes
+                bar_num_episodes = self.episodes % self.specs.info_interval_current
 
             # Reinitialize progressbar if it just finished, but the game did not.
-            if finished_episode % self.specs.info_interval_current == 0:
-                print_progressbar(0, self.specs.info_interval_current,
+            if finished_episode % self.specs.info_interval_current == 0 and remaining_episodes > 0:
+                print_progressbar(0, bar_num_episodes,
                                   'Episode: 0/{}'.format(bar_num_episodes),
                                   'Finished: {}/{}'.format(finished_episode, self.episodes))
 
             else:
-                print_progressbar(finished_episode % self.specs.info_interval_current, self.specs.info_interval_current,
+                print_progressbar(finished_episode % self.specs.info_interval_current, bar_num_episodes,
                                   'Episode: {}/{}'.format(finished_episode % self.specs.info_interval_current,
                                                           bar_num_episodes),
                                   'Finished: {}/{}'.format(finished_episode, self.episodes))
