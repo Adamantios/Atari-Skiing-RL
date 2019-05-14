@@ -154,7 +154,8 @@ class Plotter(object):
 
         # Plot state of the art measurements.
         for whom, score in state_of_the_art.items():
-            ax.plot(np.asarray([score for _ in range(self.episodes + 1)]), label='{}={}'.format(whom, score))
+            ax.plot(np.asarray([score for _ in range(self.episodes + 1)]), linestyle='--',
+                    label='{}={}'.format(whom, score))
 
         # Reset legends.
         ax.legend()
