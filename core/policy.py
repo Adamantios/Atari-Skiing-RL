@@ -11,8 +11,8 @@ class EGreedyPolicy(object):
         self.epsilon_decay = epsilon_decay
         self.total_observe_count = total_observe_count
         self.action_size = action_size
-        self.steps_taken = 0
-        self.observing = True
+        self.observing_steps_taken = 0
+        self.observing = False if self.total_observe_count == 0 else True
         self.episode_observation_stopped = 0
 
     def _decay_epsilon(self, episode: int) -> None:
@@ -30,20 +30,19 @@ class EGreedyPolicy(object):
             if self.e == self.final_e:
                 print('Final epsilon reached at episode {}'.format(episode))
 
-    def _update_steps(self, episode: int) -> None:
+    def _update_observation_state(self, episode: int) -> None:
         """
-        Updates the number of steps and sets the observing value if needed.
+        Updates the observing value if needed.
 
         :param episode: the current episode.
         """
-        if self.steps_taken < self.total_observe_count + 1:
-            self.steps_taken += 1
-            if self.total_observe_count + 1 == self.steps_taken:
+        if self.observing:
+            self.observing_steps_taken += 1
+            if self.total_observe_count == self.observing_steps_taken:
                 self.observing = False
                 self.episode_observation_stopped = episode
-                if self.total_observe_count > 0:
-                    print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
-                          .format(self.episode_observation_stopped))
+                print('Agent has stopped observing at episode {}.\nThings are about to get serious!\nOr not...'
+                      .format(self.episode_observation_stopped))
 
     def take_action(self, model: Model, current_state: np.ndarray, episode: int) -> int:
         """
@@ -54,9 +53,6 @@ class EGreedyPolicy(object):
         :param episode: the current episode.
         :return: the action number.
         """
-        # Update steps.
-        self._update_steps(episode)
-
         if np.random.rand() <= self.e or self.observing:
             # Take random action.
             action = randrange(self.action_size)
@@ -67,5 +63,8 @@ class EGreedyPolicy(object):
 
         # Decay epsilon.
         self._decay_epsilon(episode)
+
+        # Update observation state.
+        self._update_observation_state(episode)
 
         return action
