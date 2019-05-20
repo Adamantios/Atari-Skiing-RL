@@ -64,8 +64,8 @@ class Plotter(object):
             if observing_episodes < self.episodes:
                 x_no_fill = x[observing_episodes:]
                 y_no_fill = y[observing_episodes:]
-                x_max, y_max = x_no_fill[np.argmax(y_no_fill) + observing_episodes - 1], y_no_fill.max()
-                x_min, y_min = x_no_fill[np.argmin(y_no_fill) + observing_episodes - 1], y_no_fill.min()
+                x_max, y_max = x_no_fill[np.argmax(y_no_fill)], y_no_fill.max()
+                x_min, y_min = x_no_fill[np.argmin(y_no_fill)], y_no_fill.min()
 
                 # Annotate max and min values, only if they are different.
                 if x_max != x_min:
