@@ -69,13 +69,16 @@ class Plotter(object):
 
                 # Annotate max and min values, only if they are different.
                 if x_max != x_min:
+                    # Initialize color and marker for max and min values.
                     max_marker = '*' if more_is_better else 'X'
+                    max_color = '#161925' if more_is_better else '#f1d302'
                     min_marker = 'X' if more_is_better else '*'
+                    min_color = '#f1d302' if more_is_better else '#161925'
 
                     ax.scatter(x_max, y_max, label='Episode={}, Max={}'.format(x_max, y_max),
-                               color='#161925', s=150, marker=max_marker)
+                               color=max_color, s=150, marker=max_marker)
                     ax.scatter(x_min, y_min, label='Episode={}, Min={}'.format(x_min, y_min),
-                               color='#f1d302', s=150, marker=min_marker)
+                               color=min_color, s=150, marker=min_marker)
 
             # Arrange ticks, only if the episodes are less or equal with 20.
             if self.episodes <= 20:
