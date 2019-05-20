@@ -71,9 +71,9 @@ class Plotter(object):
                 if x_max != x_min:
                     # Initialize color and marker for max and min values.
                     max_marker = '*' if more_is_better else 'X'
-                    max_color = '#161925' if more_is_better else '#f1d302'
+                    max_color = '#f1d302' if more_is_better else '#161925'
                     min_marker = 'X' if more_is_better else '*'
-                    min_color = '#f1d302' if more_is_better else '#161925'
+                    min_color = '#161925' if more_is_better else '#f1d302'
 
                     ax.scatter(x_max, y_max, label='Episode={}, Max={}'.format(x_max, y_max),
                                color=max_color, s=150, marker=max_marker)
