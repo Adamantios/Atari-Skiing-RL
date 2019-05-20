@@ -24,8 +24,8 @@ class Plotter(object):
         if self.save_plot:
             fig.savefig(filename)
 
-    def _plot_score_vs_episodes(self, score: np.ndarray, observing_episodes: int, title: str, y_label: str) -> [Figure,
-                                                                                                                Axes]:
+    def _plot_score_vs_episodes(self, score: np.ndarray, observing_episodes: int, title: str, y_label: str,
+                                more_is_better=True) -> [Figure, Axes]:
         """
         Plots a score array vs episodes.
 
@@ -69,10 +69,13 @@ class Plotter(object):
 
                 # Annotate max and min values, only if they are different.
                 if x_max != x_min:
+                    max_marker = '*' if more_is_better else 'X'
+                    min_marker = 'X' if more_is_better else '*'
+
                     ax.scatter(x_max, y_max, label='Episode={}, Max={}'.format(x_max, y_max),
-                               color='#161925', s=150, marker='*')
+                               color='#161925', s=150, marker=max_marker)
                     ax.scatter(x_min, y_min, label='Episode={}, Min={}'.format(x_min, y_min),
-                               color='#f1d302', s=150, marker='X')
+                               color='#f1d302', s=150, marker=min_marker)
 
             # Arrange ticks, only if the episodes are less or equal with 20.
             if self.episodes <= 20:
@@ -135,7 +138,7 @@ class Plotter(object):
          and not consider them for the min and max values.
          These should be the episodes that the agent was taking random actions.
         """
-        fig, ax = self._plot_score_vs_episodes(loss, observing_episodes, title, 'Loss')
+        fig, ax = self._plot_score_vs_episodes(loss, observing_episodes, title, 'Loss', False)
         self._plot_and_save(fig, self.plots_name_prefix + filename_suffix)
 
     def _annotate_state_of_the_art(self, ax: Axes) -> None:
