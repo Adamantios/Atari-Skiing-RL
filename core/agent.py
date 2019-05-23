@@ -76,8 +76,9 @@ class ExperienceReplayMemory(object):
 
 class DQN(object):
     def __init__(self, model: Model, target_model_change: int, memory: ExperienceReplayMemory, gamma: float,
-                 batch_size: int, observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy):
-        # TODO change the way the agent gets saved and loaded and move memory inside the class, passing only its size.
+                 batch_size: int, observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy,
+                 target_model: Model = None):
+        # TODO move memory inside the class, passing only its size.
         self.model = model
         self.target_model_change = target_model_change
         self.memory = memory
@@ -86,7 +87,7 @@ class DQN(object):
         self.observation_space_shape = observation_space_shape
         self.action_size = action_size
         self.policy = policy
-        self.target_model = clone_model(model)
+        self.target_model = clone_model(model) if target_model is None else target_model
         self.steps_from_update = 0
 
     def _get_mini_batch(self) -> [np.ndarray]:
@@ -191,58 +192,74 @@ class DQN(object):
         """
         # Create filenames.
         model_filename = filename_prefix + '_model.h5'
-        memory_filename = filename_prefix + '_memory.pickle'
+        target_model_filename = filename_prefix + '_target_model.h5'
+        config_filename = filename_prefix + '_config.pickle'
         zip_filename = filename_prefix + '.zip'
 
-        # Save model.
+        # Save models.
         self.model.save(model_filename)
+        self.target_model.save(target_model_filename)
 
-        # Save memory.
-        with open(memory_filename, 'wb') as stream:
-            pickle.dump(self.memory, stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
+        # Create configuration dict.
+        config = dict({
+            'target_model_change': self.target_model_change,
+            'gamma': self.gamma,
+            'batch_size': self.batch_size,
+            'observation_space_shape': self.observation_space_shape,
+            'action_size': self.action_size,
+            'policy': self.policy,
+            'memory': self.memory
+        })
 
-        # Zip model and memory together.
+        # Save configuration.
+        with open(config_filename, 'wb') as stream:
+            pickle.dump(config, stream, protocol=pickle.HIGHEST_PROTOCOL)
+
+        # Zip models and configuration together.
         with ZipFile(zip_filename, 'w') as model_zip:
             model_zip.write(model_filename, basename(model_filename))
-            model_zip.write(memory_filename, basename(memory_filename))
-            model_zip.close()
+            model_zip.write(target_model_filename, basename(target_model_filename))
+            model_zip.write(config_filename, basename(config_filename))
 
         # Remove files out of the zip.
         remove(model_filename)
-        remove(memory_filename)
+        remove(target_model_filename)
+        remove(config_filename)
 
         return zip_filename
 
-    @staticmethod
-    def load_agent(filename: str, custom_objects: dict) -> [Model, ExperienceReplayMemory]:
-        """
-        Loads an agent from a file.
 
-        :param filename: the agent's filename.
-        :param custom_objects: custom_objects for the keras model.
-        """
-        # Create filenames.
-        directory = dirname(filename)
-        basename_no_extension = basename(splitext(filename)[0])
-        model_filename = join(directory, basename_no_extension + '_model.h5')
-        memory_filename = join(directory, basename_no_extension + '_memory.pickle')
+def load_dqn_agent(filename: str, custom_objects: dict) -> DQN:
+    """
+    Loads an agent from a file, using the given parameters.
 
-        # Read model and memory.
-        with ZipFile(filename) as model_zip:
-            model_zip.extractall(directory)
-            model_zip.close()
+    :param filename: the agent's filename.
+    :param custom_objects: custom_objects for the keras model.
+    :return: the DQN agent.
+    """
+    # Create filenames.
+    directory = dirname(filename)
+    basename_no_extension = basename(splitext(filename)[0])
+    model_filename = join(directory, basename_no_extension + '_model.h5')
+    target_model_filename = join(directory, basename_no_extension + '_target_model.h5')
+    config_filename = join(directory, basename_no_extension + '_config.pickle')
 
-        # Load model.
-        model = load_model(model_filename, custom_objects=custom_objects)
+    # Read models and memory.
+    with ZipFile(filename) as model_zip:
+        model_zip.extractall(directory)
 
-        # Load memory.
-        with open(memory_filename, 'rb') as stream:
-            memory = pickle.load(stream)
-            stream.close()
+    # Load models.
+    model = load_model(model_filename, custom_objects=custom_objects)
+    target_model = load_model(target_model_filename, custom_objects=custom_objects)
 
-        # Remove files out of the zip.
-        remove(model_filename)
-        remove(memory_filename)
+    # Load configuration.
+    with open(config_filename, 'rb') as stream:
+        config = pickle.load(stream)
 
-        return model, memory
+    # Remove files out of the zip.
+    remove(model_filename)
+    remove(target_model_filename)
+    remove(config_filename)
+
+    return DQN(model, config['target_model_change'], config['memory'], config['gamma'], config['batch_size'],
+               config['observation_space_shape'], config['action_size'], config['policy'], target_model)

@@ -1,7 +1,7 @@
 from os import path
 from warnings import warn
 
-from core.agent import DQN, ExperienceReplayMemory
+from core.agent import DQN, ExperienceReplayMemory, load_dqn_agent
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, MIN_FRAME_DIM_THAT_PASSES_NET, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
@@ -78,6 +78,10 @@ def run_checks() -> None:
                                  total_observe_count))
 
 
+class IncompatibleAgentConfigurationError(Exception):
+    pass
+
+
 def create_agent() -> DQN:
     """
     Creates the atari skiing agent.
@@ -85,20 +89,34 @@ def create_agent() -> DQN:
     :return: the agent.
     """
     if agent_path != '':
-        # Load the model and the memory.
-        model, memory = DQN.load_agent(agent_path, {'huber_loss': huber_loss})
+        # Load the agent.
+        dqn = load_dqn_agent(agent_path, {'huber_loss': huber_loss})
+
+        # Check for agent configuration conflicts.
+        if dqn.observation_space_shape != game.observation_space_shape:
+            raise IncompatibleAgentConfigurationError('Incompatible observation space shapes have been encountered.'
+                                                      'The loaded agent has shape {}, '
+                                                      'but the new requested shape is {}.'
+                                                      .format(dqn.observation_space_shape,
+                                                              game.observation_space_shape))
+
+        if dqn.action_size != game.action_space_size:
+            raise IncompatibleAgentConfigurationError('')
+
+        # Use the new configuration parameters.
+        dqn.target_model_change = target_model_change
+        dqn.gamma = gamma
+        dqn.batch_size = batch_size
+        dqn.policy = policy
         print('Agent {} has been loaded successfully.'.format(agent_path))
     else:
         # Init the model.
         model = atari_skiing_model(game.observation_space_shape, game.action_space_size, optimizer)
         # Create the replay memory for the agent.
         memory = ExperienceReplayMemory(replay_memory_size)
-
-    # Create the policy.
-    policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, game.action_space_size)
-    # Create the agent.
-    dqn = DQN(model, target_model_change, memory, gamma, batch_size, game.observation_space_shape,
-              game.action_space_size, policy)
+        # Create the agent.
+        dqn = DQN(model, target_model_change, memory, gamma, batch_size, game.observation_space_shape,
+                  game.action_space_size, policy)
 
     return dqn
 
@@ -151,6 +169,9 @@ if __name__ == '__main__':
 
     # Create the optimizer.
     optimizer = initialize_optimizer(optimizer_name, learning_rate, beta1, beta2, lr_decay, rho, fuzz, momentum)
+
+    # Create the policy.
+    policy = EGreedyPolicy(epsilon, final_epsilon, epsilon_decay, total_observe_count, game.action_space_size)
 
     # Create the agent.
     agent = create_agent()
