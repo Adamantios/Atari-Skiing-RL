@@ -79,7 +79,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-rp', '--results_name_prefix', type=str, required=False, default=RESULTS_NAME_PREFIX,
                         help='Filename prefix for the results history to be saved (default %(default)s).')
     parser.add_argument('-si', '--save_interval', type=positive_int, default=SAVE_INTERVAL, required=False,
-                        help='The save interval for the trained model (default %(default)s), in episodes.')
+                        help='The save interval for the trained agent (default %(default)s), in episodes.')
     parser.add_argument('-rsi', '--results_save_interval', type=int, default=RESULTS_SAVE_INTERVAL, required=False,
                         help='The save interval for the results history (default %(default)s), in episodes.'
                              'Insert a negative value to not save the results history.')
