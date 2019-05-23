@@ -61,8 +61,9 @@ def run_checks() -> None:
         raise ValueError('Final epsilon ({}) cannot be greater than epsilon ({}).'
                          .format(final_epsilon, epsilon))
 
-    if epsilon_decay > epsilon - final_epsilon:
-        warn('Epsilon decay is too big ({})!'.format(epsilon_decay))
+    if (epsilon_decay > epsilon - final_epsilon) and epsilon != final_epsilon:
+        warn('Epsilon decay ({}) is too big, compared with epsilon ({}) and final epsilon ({})!'
+             .format(epsilon_decay, epsilon, final_epsilon))
 
     if total_observe_count < poor_observe and agent_path == '':
         warn('The total number of observing steps ({}) is too small and could bring poor results.'
