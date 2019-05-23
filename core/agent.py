@@ -75,13 +75,12 @@ class ExperienceReplayMemory(object):
 
 
 class DQN(object):
-    def __init__(self, model: Model, target_model_change: int, memory: ExperienceReplayMemory, gamma: float,
+    def __init__(self, model: Model, target_model_change: int, memory_size: int, gamma: float,
                  batch_size: int, observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy,
                  target_model: Model = None):
-        # TODO move memory inside the class, passing only its size.
         self.model = model
         self.target_model_change = target_model_change
-        self.memory = memory
+        self.memory = ExperienceReplayMemory(memory_size)
         self.gamma = gamma
         self.batch_size = batch_size
         self.observation_space_shape = observation_space_shape

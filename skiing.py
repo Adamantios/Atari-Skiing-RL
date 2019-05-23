@@ -1,7 +1,7 @@
 from os import path
 from warnings import warn
 
-from core.agent import DQN, ExperienceReplayMemory, load_dqn_agent
+from core.agent import DQN, load_dqn_agent
 from core.model import atari_skiing_model, huber_loss, frame_can_pass_the_net, MIN_FRAME_DIM_THAT_PASSES_NET, \
     initialize_optimizer
 from core.policy import EGreedyPolicy
@@ -112,10 +112,8 @@ def create_agent() -> DQN:
     else:
         # Init the model.
         model = atari_skiing_model(game.observation_space_shape, game.action_space_size, optimizer)
-        # Create the replay memory for the agent.
-        memory = ExperienceReplayMemory(replay_memory_size)
         # Create the agent.
-        dqn = DQN(model, target_model_change, memory, gamma, batch_size, game.observation_space_shape,
+        dqn = DQN(model, target_model_change, replay_memory_size, gamma, batch_size, game.observation_space_shape,
                   game.action_space_size, policy)
 
     return dqn
