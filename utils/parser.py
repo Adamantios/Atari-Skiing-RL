@@ -72,6 +72,7 @@ def create_parser() -> ArgumentParser:
 
     :return: ArgumentParser object.
     """
+    # TODO add ability to use all or some of the saved parameters of the loaded agent, if loaded.
     parser = ArgumentParser(description='Trains a DQN agent to play the Atari Skiing game.')
 
     parser.add_argument('-fp', '--filename_prefix', type=str, required=False, default=FILENAME_PREFIX,
