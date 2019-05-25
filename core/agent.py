@@ -86,8 +86,21 @@ class DQN(object):
         self.observation_space_shape = observation_space_shape
         self.action_size = action_size
         self.policy = policy
-        self.target_model = clone_model(model) if target_model is None else target_model
+        self.target_model = self._create_target_model() if target_model is None else target_model
         self.steps_from_update = 0
+
+    def _create_target_model(self) -> Model:
+        """
+        Creates the target model, by copying the model.
+
+        :return: the target model.
+        """
+        target_model = clone_model(self.model)
+        target_model.build(self.observation_space_shape)
+        target_model.compile(optimizer=self.model.optimizer, loss=self.model.loss)
+        target_model.set_weights(self.model.get_weights())
+
+        return target_model
 
     def _get_mini_batch(self) -> [np.ndarray]:
         """
