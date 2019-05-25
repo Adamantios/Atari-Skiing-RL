@@ -75,12 +75,12 @@ class ExperienceReplayMemory(object):
 
 
 class DQN(object):
-    def __init__(self, model: Model, target_model_change: int, memory_size: int, gamma: float,
-                 batch_size: int, observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy,
-                 target_model: Model = None):
+    def __init__(self, model: Model, target_model_change: int, gamma: float, batch_size: int,
+                 observation_space_shape: tuple, action_size: int, policy: EGreedyPolicy, target_model: Model = None,
+                 memory_size: int = None, memory: ExperienceReplayMemory = None):
         self.model = model
         self.target_model_change = target_model_change
-        self.memory = ExperienceReplayMemory(memory_size)
+        self.memory = ExperienceReplayMemory(memory_size) if memory is None else memory
         self.gamma = gamma
         self.batch_size = batch_size
         self.observation_space_shape = observation_space_shape
@@ -260,5 +260,6 @@ def load_dqn_agent(filename: str, custom_objects: dict) -> DQN:
     remove(target_model_filename)
     remove(config_filename)
 
-    return DQN(model, config['target_model_change'], config['memory'], config['gamma'], config['batch_size'],
-               config['observation_space_shape'], config['action_size'], config['policy'], target_model)
+    return DQN(model, config['target_model_change'], config['gamma'], config['batch_size'],
+               config['observation_space_shape'], config['action_size'], config['policy'], target_model,
+               memory=config['memory'])

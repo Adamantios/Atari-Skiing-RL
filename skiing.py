@@ -113,8 +113,8 @@ def create_agent() -> DQN:
         # Init the model.
         model = atari_skiing_model(game.observation_space_shape, game.action_space_size, optimizer)
         # Create the agent.
-        dqn = DQN(model, target_model_change, replay_memory_size, gamma, batch_size, game.observation_space_shape,
-                  game.action_space_size, policy)
+        dqn = DQN(model, target_model_change, gamma, batch_size, game.observation_space_shape,
+                  game.action_space_size, policy, memory_size=replay_memory_size)
 
     return dqn
 
