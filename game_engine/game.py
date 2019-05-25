@@ -261,7 +261,7 @@ class Game(object):
                                   'Finished: {}/{}'.format(finished_episode, self.episodes))
 
         elif remaining_episodes == 0:
-            print('All the episodes have finished!')
+            print('\rAll the episodes have finished!')
 
     def _end_of_episode_actions(self, finished_episode: int, agent: DQN) -> None:
         """
