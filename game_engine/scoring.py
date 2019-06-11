@@ -23,19 +23,16 @@ class Scorer(object):
         print('Saving results.')
 
         # Save total scores.
-        with open('{}_total_scores_episode{}'.format(self.results_name_prefix, episode), 'wb') as stream:
+        with open('{}_total_scores_episode{}.{}'.format(self.results_name_prefix, episode, 'pickle'), 'wb') as stream:
             pickle.dump(self.total_scores[:episode], stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
 
         # Save max scores.
-        with open('{}_max_scores_episode{}'.format(self.results_name_prefix, episode), 'wb') as stream:
+        with open('{}_max_scores_episode{}.{}'.format(self.results_name_prefix, episode, 'pickle'), 'wb') as stream:
             pickle.dump(self.max_scores[:episode], stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
 
         # Save losses.
-        with open('{}_losses_episode{}'.format(self.results_name_prefix, episode), 'wb') as stream:
+        with open('{}_losses_episode{}.{}'.format(self.results_name_prefix, episode, 'pickle'), 'wb') as stream:
             pickle.dump(self.huber_loss_history[:episode], stream, protocol=pickle.HIGHEST_PROTOCOL)
-            stream.close()
 
         print('Results have been saved successfully.')
 
