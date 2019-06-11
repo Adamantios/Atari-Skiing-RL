@@ -1,3 +1,4 @@
+import sys
 from os import makedirs, path
 
 
@@ -33,7 +34,7 @@ def print_progressbar(iteration: int, total: int, prefix: str = '', suffix: str 
     filled_length = int(length * iteration // total)
     finish = '>' if iteration != 0 else ''
     bar = fill * filled_length + finish + '-' * (length - filled_length)
-    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='')
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='\r')
 
     # Print New Line on Complete.
     if iteration == total:
