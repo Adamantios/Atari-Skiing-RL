@@ -1,6 +1,6 @@
 import pickle
 from os import remove
-from os.path import basename, splitext, dirname, join
+from os.path import basename, dirname, join
 from random import sample
 from typing import Union
 from zipfile import ZipFile
@@ -251,7 +251,6 @@ def load_dqn_agent(filename: str, custom_objects: dict) -> DQN:
     """
     # Create filenames.
     directory = dirname(filename)
-    basename_no_extension = basename(splitext(filename)[0])
     model_filename = join(directory, 'model.h5')
     target_model_filename = join(directory, 'target_model.h5')
     config_filename = join(directory, 'config.pickle')
