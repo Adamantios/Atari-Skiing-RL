@@ -3,6 +3,7 @@ from argparse import ArgumentParser, ArgumentTypeError
 FILENAME_PREFIX = 'out/models/atari_skiing'
 PLOT_NAME_PREFIX = 'out/plots/atari_skiing'
 RESULTS_NAME_PREFIX = 'out/results/atari_skiing'
+RECORDING_NAME_PREFIX = 'out/recording'
 SAVE_INTERVAL = 100
 RESULTS_SAVE_INTERVAL = 100
 INFO_INTERVAL_CURRENT = 20
@@ -13,6 +14,7 @@ AGENT_HISTORY = 4
 PLOT_TRAIN_RESULTS = True
 SAVE_PLOTS = True
 RENDER = True
+RECORD = False
 DOWNSAMPLE_SCALE = 2
 STEPS_PER_ACTION = 4
 FIT_FREQUENCY = 4
@@ -79,6 +81,8 @@ def create_parser() -> ArgumentParser:
                         help='Filename prefix for the trained model to be saved (default %(default)s).')
     parser.add_argument('-rp', '--results_name_prefix', type=str, required=False, default=RESULTS_NAME_PREFIX,
                         help='Filename prefix for the results history to be saved (default %(default)s).')
+    parser.add_argument('-recp', '--recording_name_prefix', type=str, required=False, default=RECORDING_NAME_PREFIX,
+                        help='Filename prefix for the recording if chosen to be saved (default %(default)s).')
     parser.add_argument('-si', '--save_interval', type=positive_int, default=SAVE_INTERVAL, required=False,
                         help='The save interval for the trained agent (default %(default)s), in episodes.')
     parser.add_argument('-rsi', '--results_save_interval', type=int, default=RESULTS_SAVE_INTERVAL, required=False,
@@ -103,6 +107,8 @@ def create_parser() -> ArgumentParser:
                         help='Filename prefix for the plots to be saved (default %(default)s).')
     parser.add_argument('-nr', '--no_render', default=not RENDER, required=False, action='store_true',
                         help='Whether the environment should not be rendered.')
+    parser.add_argument('-rec', '--record', default=RECORD, required=False, action='store_true',
+                        help='Whether the game should be recorded.')
     parser.add_argument('-d', '--downsample', type=positive_int, default=DOWNSAMPLE_SCALE, required=False,
                         help='The downsampling scale to be used (default %(default)s).')
     parser.add_argument('-fs', '--frame_skipping', type=positive_int, default=STEPS_PER_ACTION, required=False,

@@ -124,6 +124,7 @@ if __name__ == '__main__':
     args = create_parser().parse_args()
     agent_name_prefix = args.filename_prefix
     results_name_prefix = args.results_name_prefix
+    recording_name_prefix = args.recording_name_prefix
     results_save_interval = args.results_save_interval
     agent_save_interval = args.save_interval
     info_interval_current = args.info_interval_current
@@ -135,6 +136,7 @@ if __name__ == '__main__':
     save_plots = not args.no_save_plots
     plots_name_prefix = args.plot_name
     render = not args.no_render
+    record = args.record
     downsample_scale = args.downsample
     steps_per_action = args.frame_skipping
     fit_frequency = args.fit_frequency
@@ -158,12 +160,12 @@ if __name__ == '__main__':
 
     # Create the game specs.
     game_specs = GameResultSpecs(info_interval_current, info_interval_mean, agent_save_interval, results_save_interval,
-                                 plots_name_prefix, results_name_prefix, agent_name_prefix, plot_train_results,
-                                 save_plots)
+                                 plots_name_prefix, results_name_prefix, agent_name_prefix, recording_name_prefix,
+                                 plot_train_results, save_plots)
 
     # Create the game.
     game = Game(episodes, downsample_scale, agent_frame_history, steps_per_action, fit_frequency,
-                no_operation, game_specs)
+                no_operation, game_specs, render, record)
 
     # Create the optimizer.
     optimizer = initialize_optimizer(optimizer_name, learning_rate, beta1, beta2, lr_decay, rho, fuzz, momentum)
@@ -178,4 +180,4 @@ if __name__ == '__main__':
     run_checks()
 
     # Play the game, using the agent.
-    game.play_game(agent, render)
+    game.play_game(agent)

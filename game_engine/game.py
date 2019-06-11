@@ -20,9 +20,10 @@ class GameResultSpecs:
     info_interval_mean: int
     agent_save_interval: int
     results_save_interval: int
-    plots_name_prefix: str = 'plots'
-    results_name_prefix: str = 'results'
-    agent_name_prefix: str = 'agent'
+    plots_name_prefix: str
+    results_name_prefix: str
+    agent_name_prefix: str
+    recording_name_prefix: str
     plot_train_results: bool = True
     save_plots: bool = True
 
@@ -32,7 +33,7 @@ _GameInfo = [np.ndarray, float, bool]
 
 class Game(object):
     def __init__(self, episodes: int, downsample_scale: int, agent_frame_history: int, steps_per_action: int,
-                 fit_frequency: int, no_operation: int, specs: GameResultSpecs):
+                 fit_frequency: int, no_operation: int, specs: GameResultSpecs, render: bool, record: bool):
         self.episodes = episodes
         self.downsample_scale = downsample_scale
         self.agent_frame_history = agent_frame_history
@@ -40,6 +41,8 @@ class Game(object):
         self.fit_frequency = fit_frequency
         self.no_operation = no_operation
         self.specs = specs
+        self.render = render
+        self.record = record
 
         # Create the skiing environment.
         self._env, self.pixel_rows, self.pixel_columns, self.action_space_size = self._create_skiing_environment()
@@ -57,8 +60,7 @@ class Game(object):
         self.plotter = Plotter(self.episodes, self.specs.plots_name_prefix, self.specs.plot_train_results,
                                self.specs.save_plots)
 
-    @staticmethod
-    def _create_skiing_environment() -> [TimeLimit, int, int, int]:
+    def _create_skiing_environment(self) -> [TimeLimit, int, int, int]:
         """
         Creates a skiing environment.
 
@@ -66,6 +68,11 @@ class Game(object):
         """
         # Create the skiing environment.
         environment = gym.make('SkiingDeterministic-v4')
+
+        # Record environment.
+        if self.record:
+            environment = gym.wrappers.Monitor(environment, self.specs.recording_name_prefix, force=True)
+
         # Get the observation space's height and width.
         height, width = environment.observation_space.shape[0], environment.observation_space.shape[1]
         # Get the number of possible moves.
@@ -73,26 +80,24 @@ class Game(object):
 
         return environment, height, width, act_space_size
 
-    def _begin_episode(self, render: bool) -> np.ndarray:
+    def _begin_episode(self) -> np.ndarray:
         """
         Begins an episode.
 
-        :param render: if the initial state should render.
         :return: the initial state.
         """
         # Reset and render the environment.
         init_state = self._env.reset()
-        if render:
+        if self.render:
             self._env.render()
 
         return init_state
 
-    def _observe(self, init_state: np.ndarray, render: bool) -> [np.ndarray, bool]:
+    def _observe(self, init_state: np.ndarray) -> [np.ndarray, bool]:
         """
         Take no action.
 
         :param init_state: the initial state.
-        :param render: if the observing steps should render.
         :return: the next state and if game is done.
         """
         # Init variables.
@@ -103,7 +108,7 @@ class Game(object):
             # Take no action.
             observe, _, done, _ = self._env.step(0)
             # Render the frame.
-            if render:
+            if self.render:
                 self._env.render()
 
             if done:
@@ -111,18 +116,17 @@ class Game(object):
 
         return observe, done
 
-    def _pretrain_phase(self, render: bool) -> np.ndarray:
+    def _pretrain_phase(self) -> np.ndarray:
         """
         Completes pretrain phase.
 
-        :param render: if the pretrain phase should render.
         :return: the state that was created.
         """
         # Start the episode.
-        init_state = self._begin_episode(render)
+        init_state = self._begin_episode()
 
         # Just observe.
-        current_state, done = self._observe(init_state, render)
+        current_state, done = self._observe(init_state)
 
         # Preprocess current_state.
         current_state = atari_preprocess(current_state, self.downsample_scale)
@@ -132,15 +136,13 @@ class Game(object):
 
         return current_state
 
-    def _take_frame_skipping_action(self, agent: DQN, current_state: np.ndarray, episode: int,
-                                    render: bool) -> _GameInfo:
+    def _take_frame_skipping_action(self, agent: DQN, current_state: np.ndarray, episode: int) -> _GameInfo:
         """
         Takes an action, using frame skipping.
 
         :param agent: the agent to take the action.
         :param current_state: the current state.
         :param episode: the current episode.
-        :param render: if the action should render.
         :return: the next state, the reward and if game is done.
         """
         # Let the agent take an action.
@@ -152,7 +154,7 @@ class Game(object):
             # Take a step, using the action.
             next_state, new_reward, done, _ = self._env.step(action)
             # Render the frame.
-            if render:
+            if self.render:
                 self._env.render()
             # Add reward.
             reward += new_reward
@@ -173,14 +175,13 @@ class Game(object):
 
         return next_state, reward, done
 
-    def _train_and_play(self, agent: DQN, current_state: np.ndarray, episode: int, render: bool) -> _GameInfo:
+    def _train_and_play(self, agent: DQN, current_state: np.ndarray, episode: int) -> _GameInfo:
         """
         Train the agent while playing, using the current state.
 
         :param agent: the agent to train.
         :param current_state: the current state.
         :param episode: the current episode.
-        :param render: if the actions should render.
         :return: the next state, the reward and if game is done.
         """
         # Init variables.
@@ -189,7 +190,7 @@ class Game(object):
         # Repeat actions before fitting time.
         for _ in range(self.fit_frequency):
             # Take an action.
-            next_state, new_reward, done = self._take_frame_skipping_action(agent, current_state, episode, render)
+            next_state, new_reward, done = self._take_frame_skipping_action(agent, current_state, episode)
             # Add reward.
             reward += new_reward
             if done:
@@ -202,12 +203,11 @@ class Game(object):
 
         return next_state, reward, done
 
-    def _game_loop(self, agent: DQN, render: bool) -> Generator:
+    def _game_loop(self, agent: DQN) -> Generator:
         """
         Starts the game loop and trains the agent.
 
         :param agent: the agent to play the game.
-        :param render: if the game should render.
         :return: generator containing the finished episode number.
         """
         # Run for a number of episodes.
@@ -215,11 +215,11 @@ class Game(object):
             # Init vars.
             reward, max_score, total_score, done = 0, -inf, 0, False
             # Complete pretrain phase.
-            current_state = self._pretrain_phase(render)
+            current_state = self._pretrain_phase()
 
             while not done:
                 # Train the agent while playing.
-                current_state, reward, done = self._train_and_play(agent, current_state, episode, render)
+                current_state, reward, done = self._train_and_play(agent, current_state, episode)
                 # Add reward to the total score.
                 total_score += reward
                 # Set max score.
@@ -312,17 +312,16 @@ class Game(object):
                 finished_episode % self.specs.results_save_interval == 0 or self.specs.results_save_interval == 1):
             self.scorer.save_results(finished_episode)
 
-    def play_game(self, agent: DQN, render: bool) -> None:
+    def play_game(self, agent: DQN) -> None:
         """
         Plays the game.
 
         :param agent: the agent who will take the actions in the game.
-        :param render: if the game should render.
         """
         # Initialize progressbar.
         self._update_progressbar(0)
 
         # Start the game loop.
-        for finished_episode in self._game_loop(agent, render):
+        for finished_episode in self._game_loop(agent):
             # Take specific actions after the end of each episode.
             self._end_of_episode_actions(finished_episode, agent)
