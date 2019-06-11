@@ -203,9 +203,9 @@ class DQN(object):
         :return: the filename.
         """
         # Create filenames.
-        model_filename = filename_prefix + '_model.h5'
-        target_model_filename = filename_prefix + '_target_model.h5'
-        config_filename = filename_prefix + '_config.pickle'
+        model_filename = 'model.h5'
+        target_model_filename = 'target_model.h5'
+        config_filename = 'config.pickle'
         zip_filename = filename_prefix + '.zip'
 
         # Save models.
@@ -252,9 +252,9 @@ def load_dqn_agent(filename: str, custom_objects: dict) -> DQN:
     # Create filenames.
     directory = dirname(filename)
     basename_no_extension = basename(splitext(filename)[0])
-    model_filename = join(directory, basename_no_extension + '_model.h5')
-    target_model_filename = join(directory, basename_no_extension + '_target_model.h5')
-    config_filename = join(directory, basename_no_extension + '_config.pickle')
+    model_filename = join(directory, 'model.h5')
+    target_model_filename = join(directory, 'target_model.h5')
+    config_filename = join(directory, 'config.pickle')
 
     # Read models and memory.
     with ZipFile(filename) as model_zip:
