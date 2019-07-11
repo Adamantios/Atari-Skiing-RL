@@ -108,7 +108,8 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-nr', '--no_render', default=not RENDER, required=False, action='store_true',
                         help='Whether the environment should not be rendered.')
     parser.add_argument('-rec', '--record', default=RECORD, required=False, action='store_true',
-                        help='Whether the game should be recorded.')
+                        help='Whether the game should be recorded. '
+                             'Please note that you need to have ffmpeg in your path!')
     parser.add_argument('-d', '--downsample', type=positive_int, default=DOWNSAMPLE_SCALE, required=False,
                         help='The downsampling scale to be used (default %(default)s).')
     parser.add_argument('-fs', '--frame_skipping', type=positive_int, default=STEPS_PER_ACTION, required=False,
