@@ -115,7 +115,14 @@ optional arguments:
 ```
 
 ## Results
+The results are not optimal, because of hardware limitations, 
+though we can observe the effectiveness of the methods applied.
 
+#### Score vs Episodes
+![Score vs Episodes Diagram, with State of the Art comparisons](examples/total_scores_vs_episodes_soa_compared.png)
+
+#### Trained vs Untrained Performance
+![Gif showing the performance of the agent on the game, when untrained vs trained](examples/Untrained_vs_Trained.gif)
 
 ## Future Enhancements
 - Add more agents and choose between them through the CLI.
