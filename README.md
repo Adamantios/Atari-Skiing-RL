@@ -121,7 +121,7 @@ though we can observe the effectiveness of the methods applied.
 #### Score vs Episodes
 ![Score vs Episodes Diagram, with State of the Art comparisons](examples/total_scores_vs_episodes_soa_compared.png)
 
-#### Trained vs Untrained Performance
+#### Untrained vs Trained Performance
 ![Gif showing the performance of the agent on the game, when untrained vs trained](examples/Untrained_vs_Trained.gif)
 
 ## Future Enhancements
