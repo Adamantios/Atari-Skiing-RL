@@ -125,5 +125,5 @@ though we can observe the effectiveness of the methods applied.
 ![Gif showing the performance of the agent on the game, when untrained vs trained](examples/Untrained_vs_Trained.gif)
 
 ## Future Enhancements
-- Add more agents and choose between them through the CLI.
+- Add more agents and choose among them through the CLI.
 - Add choices for the Open Ai Gym environment to be used through the CLI.
